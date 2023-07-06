@@ -1,0 +1,765 @@
+{
+    "data": [
+        {
+            "dateCollected": "2023-06-29",
+            "trial": 1,
+            "laserWavelength": 7.79999e-05,
+            "opticalLength": 2.5,
+            "ovenTemp": 140,
+            "laserPower": 0.34,
+            "rotationConversionFactor": 0.00015309797848024427,
+            "laserTemp": 1.84,
+            "magneticField": [
+                0.0,
+                6.83,
+                13.7,
+                19.9,
+                26.5,
+                32.5,
+                36.8
+            ],
+            "rotation": [
+                0.0,
+                -0.0003276,
+                -0.0002786,
+                -0.0002357,
+                -0.0001929,
+                -0.00015,
+                -0.0001133
+            ],
+            "magFieldError": [],
+            "rotationError": [
+                2e-06,
+                1e-05,
+                1e-05,
+                9e-06,
+                7e-06,
+                5e-06,
+                3e-06
+            ]
+        },
+        {
+            "dateCollected": "2023-06-29",
+            "trial": 2,
+            "laserWavelength": 7.79986e-05,
+            "opticalLength": 2.5,
+            "ovenTemp": 140,
+            "laserPower": 0.34,
+            "rotationConversionFactor": 0.00014780900325390766,
+            "laserTemp": 1.86,
+            "magneticField": [
+                0.0,
+                7.39,
+                13.5,
+                19.7,
+                26.0,
+                41.5
+            ],
+            "rotation": [
+                0.0,
+                -0.0003257,
+                -0.0002843,
+                -0.0002429,
+                -0.0002074,
+                -0.000172
+            ],
+            "magFieldError": [],
+            "rotationError": [
+                3e-06,
+                1e-05,
+                1e-05,
+                8e-06,
+                7e-06,
+                5e-06
+            ]
+        },
+        {
+            "dateCollected": "2023-06-29",
+            "trial": 3,
+            "laserWavelength": 7.79986e-05,
+            "opticalLength": 2.5,
+            "ovenTemp": 140,
+            "laserPower": 0.34,
+            "rotationConversionFactor": 0.00014299786123572413,
+            "laserTemp": 1.86,
+            "magneticField": [
+                0.0,
+                7.68,
+                14.0,
+                19.8,
+                25.9,
+                31.9
+            ],
+            "rotation": [
+                0.0,
+                -0.0003146,
+                -0.0002632,
+                -0.0002288,
+                -0.0001888,
+                -0.000151
+            ],
+            "magFieldError": [],
+            "rotationError": [
+                2e-06,
+                2e-05,
+                1e-05,
+                1e-05,
+                1e-05,
+                8e-06
+            ]
+        },
+        {
+            "dateCollected": "2023-06-29",
+            "trial": 4,
+            "laserWavelength": 7.79973e-05,
+            "opticalLength": 2.5,
+            "ovenTemp": 140,
+            "laserPower": 0.34,
+            "rotationConversionFactor": 0.00013222190777605598,
+            "laserTemp": 1.88,
+            "magneticField": [
+                0.0,
+                7.63,
+                13.8,
+                19.5,
+                25.6,
+                32.1
+            ],
+            "rotation": [
+                0.0,
+                -0.000283,
+                -0.0002512,
+                -0.0002195,
+                -0.0001772,
+                -0.0001372
+            ],
+            "magFieldError": [],
+            "rotationError": [
+                3e-06,
+                9e-06,
+                8e-06,
+                7e-06,
+                5e-06,
+                3e-06
+            ]
+        },
+        {
+            "dateCollected": "2023-06-29",
+            "trial": 5,
+            "laserWavelength": 7.79962e-05,
+            "opticalLength": 2.5,
+            "ovenTemp": 140,
+            "laserPower": 0.34,
+            "rotationConversionFactor": 0.00012647313245385913,
+            "laserTemp": 1.9,
+            "magneticField": [
+                0.0,
+                7.16,
+                13.1,
+                19.2,
+                25.3,
+                31.4
+            ],
+            "rotation": [
+                0.0,
+                -0.0002302,
+                -0.0001948,
+                -0.0001659,
+                -0.0001341,
+                -9.359e-05
+            ],
+            "magFieldError": [],
+            "rotationError": [
+                1e-06,
+                1e-05,
+                1e-05,
+                8e-06,
+                7e-06,
+                5e-06
+            ]
+        },
+        {
+            "dateCollected": "2023-06-29",
+            "trial": 6,
+            "laserWavelength": 7.79949e-05,
+            "opticalLength": 2.5,
+            "ovenTemp": 140,
+            "laserPower": 0.34,
+            "rotationConversionFactor": 0.0001246906081636338,
+            "laserTemp": 1.92,
+            "magneticField": [
+                0.0,
+                6.45,
+                12.8,
+                19.3,
+                25.5,
+                31.0
+            ],
+            "rotation": [
+                0.0,
+                -0.0002012,
+                -0.0001738,
+                -0.0001438,
+                -0.0001164,
+                -7.823e-05
+            ],
+            "magFieldError": [],
+            "rotationError": [
+                2e-06,
+                7e-06,
+                6e-06,
+                4e-06,
+                3e-06,
+                1e-06
+            ]
+        },
+        {
+            "dateCollected": "2023-06-29",
+            "trial": 7,
+            "laserWavelength": 7.79936e-05,
+            "opticalLength": 2.5,
+            "ovenTemp": 140,
+            "laserPower": 0.34,
+            "rotationConversionFactor": 0.00012291050822743895,
+            "laserTemp": 1.94,
+            "magneticField": [
+                0.0,
+                7.06,
+                13.4,
+                19.3,
+                25.3,
+                31.4
+            ],
+            "rotation": [
+                0.0,
+                -0.0001887,
+                -0.000157,
+                -0.0001275,
+                -0.0001006,
+                -6.883e-05
+            ],
+            "magFieldError": [],
+            "rotationError": [
+                3e-06,
+                5e-06,
+                4e-06,
+                3e-06,
+                1e-06,
+                0.0
+            ]
+        },
+        {
+            "dateCollected": "2023-06-29",
+            "trial": 8,
+            "laserWavelength": 7.79924e-05,
+            "opticalLength": 2.5,
+            "ovenTemp": 140,
+            "laserPower": 0.34,
+            "rotationConversionFactor": 0.00012120611660171922,
+            "laserTemp": 1.96,
+            "magneticField": [
+                0.0,
+                6.88,
+                13.0,
+                19.5,
+                25.3,
+                31.4
+            ],
+            "rotation": [
+                0.0,
+                -0.0001584,
+                -0.0001319,
+                -0.0001076,
+                -8.157e-05,
+                -5.188e-05
+            ],
+            "magFieldError": [],
+            "rotationError": [
+                6e-07,
+                8e-06,
+                6e-06,
+                5e-06,
+                4e-06,
+                3e-06
+            ]
+        },
+        {
+            "dateCollected": "2023-06-29",
+            "trial": 9,
+            "laserWavelength": 7.79924e-05,
+            "opticalLength": 2.5,
+            "ovenTemp": 140,
+            "laserPower": 0.34,
+            "rotationConversionFactor": 0.0001246663708966717,
+            "laserTemp": 1.96,
+            "magneticField": [
+                0.0,
+                7.16,
+                12.9,
+                19.1,
+                25.5,
+                31.2
+            ],
+            "rotation": [
+                0.0,
+                -0.0001646,
+                -0.0001399,
+                -0.0001112,
+                -8.478e-05,
+                -5.486e-05
+            ],
+            "magFieldError": [],
+            "rotationError": [
+                2e-06,
+                9e-06,
+                8e-06,
+                6e-06,
+                5e-06,
+                4e-06
+            ]
+        },
+        {
+            "dateCollected": "2023-06-29",
+            "trial": 10,
+            "laserWavelength": 7.79913e-05,
+            "opticalLength": 2.5,
+            "ovenTemp": 140,
+            "laserPower": 0.34,
+            "rotationConversionFactor": 0.00012647313682451406,
+            "laserTemp": 1.98,
+            "magneticField": [
+                0.0,
+                6.97,
+                13.8,
+                19.7,
+                25.4,
+                31.7
+            ],
+            "rotation": [
+                0.0,
+                -0.0001329,
+                -0.0001037,
+                -8.092e-05,
+                -6.071e-05,
+                -3.63e-05
+            ],
+            "magFieldError": [],
+            "rotationError": [
+                1e-06,
+                5e-06,
+                3e-06,
+                2e-06,
+                1e-06,
+                4e-07
+            ]
+        },
+        {
+            "dateCollected": "2023-06-29",
+            "trial": 11,
+            "laserWavelength": 7.79908e-05,
+            "opticalLength": 2.5,
+            "ovenTemp": 140,
+            "laserPower": 0.34,
+            "rotationConversionFactor": 0.00012294307747916727,
+            "laserTemp": 1.99,
+            "magneticField": [
+                0.0,
+                8.05,
+                13.0,
+                18.9,
+                25.3,
+                31.3
+            ],
+            "rotation": [
+                0.0,
+                -0.000118,
+                -9.796e-05,
+                -7.622e-05,
+                -5.655e-05,
+                -3.32e-05
+            ],
+            "magFieldError": [],
+            "rotationError": [
+                2e-06,
+                3e-06,
+                2e-06,
+                1e-06,
+                3e-07,
+                7e-07
+            ]
+        },
+        {
+            "dateCollected": "2023-06-29",
+            "trial": 12,
+            "laserWavelength": 7.80005e-05,
+            "opticalLength": 2.5,
+            "ovenTemp": 140,
+            "laserPower": 0.34,
+            "rotationConversionFactor": 0.0001372903681959781,
+            "laserTemp": 1.83,
+            "magneticField": [
+                0.0,
+                7.21,
+                13.6,
+                19.8,
+                25.9,
+                32.1
+            ],
+            "rotation": [
+                0.0,
+                -0.0003432,
+                -0.0003047,
+                -0.0002663,
+                -0.0002224,
+                -0.0001785
+            ],
+            "magFieldError": [],
+            "rotationError": [
+                4e-06,
+                2e-05,
+                2e-05,
+                2e-05,
+                1e-05,
+                1e-05
+            ]
+        },
+        {
+            "dateCollected": "2023-06-29",
+            "trial": 13,
+            "laserWavelength": 7.80044e-05,
+            "opticalLength": 2.5,
+            "ovenTemp": 140,
+            "laserPower": 0.34,
+            "rotationConversionFactor": 0.00019833286927661004,
+            "laserTemp": 1.77,
+            "magneticField": [
+                0.0,
+                7.02,
+                13.3,
+                20.8,
+                26.2,
+                30.8
+            ],
+            "rotation": [
+                0.0,
+                -0.0005701,
+                -0.0005236,
+                -0.0004308,
+                -0.0003683,
+                -0.0003173
+            ],
+            "magFieldError": [],
+            "rotationError": [
+                4e-06,
+                2e-05,
+                2e-05,
+                2e-05,
+                1e-05,
+                1e-05
+            ]
+        },
+        {
+            "dateCollected": "2023-06-29",
+            "trial": 14,
+            "laserWavelength": 7.80005e-05,
+            "opticalLength": 2.5,
+            "ovenTemp": 140,
+            "laserPower": 0.34,
+            "rotationConversionFactor": 0.00013558394033548162,
+            "laserTemp": 1.83,
+            "magneticField": [
+                0.0,
+                7.06,
+                13.2,
+                21.2,
+                25.5,
+                31.8
+            ],
+            "rotation": [
+                0.0,
+                -0.0003523,
+                -0.0003089,
+                -0.0002547,
+                -0.000243,
+                -0.0002004
+            ],
+            "magFieldError": [],
+            "rotationError": [
+                3e-06,
+                2e-05,
+                2e-05,
+                1e-05,
+                1e-05,
+                1e-05
+            ]
+        },
+        {
+            "dateCollected": "2023-06-29",
+            "trial": 15,
+            "laserWavelength": 7.80044e-05,
+            "opticalLength": 2.5,
+            "ovenTemp": 140,
+            "laserPower": 0.34,
+            "rotationConversionFactor": 0.0001973543352144236,
+            "laserTemp": 1.77,
+            "magneticField": [
+                0.0,
+                7.02,
+                13.2,
+                19.3,
+                25.2,
+                31.6
+            ],
+            "rotation": [
+                0.0,
+                -0.0001547,
+                -0.0005084,
+                -0.0004453,
+                -0.0003979,
+                -0.0003268
+            ],
+            "magFieldError": [],
+            "rotationError": [
+                2e-06,
+                9e-06,
+                2e-05,
+                2e-05,
+                2e-05,
+                2e-05
+            ]
+        },
+        {
+            "dateCollected": "2023-06-29",
+            "trial": 16,
+            "laserWavelength": 7.80093e-05,
+            "opticalLength": 2.5,
+            "ovenTemp": 140,
+            "laserPower": 0.34,
+            "rotationConversionFactor": 0.0003794194006361317,
+            "laserTemp": 1.7,
+            "magneticField": [
+                0.0,
+                6.83,
+                13.6,
+                20.1,
+                25.7,
+                30.4
+            ],
+            "rotation": [
+                0.0,
+                -0.000903,
+                -0.000812,
+                -0.0006908,
+                -0.0005995,
+                -0.0005386
+            ],
+            "magFieldError": [],
+            "rotationError": [
+                8e-06,
+                5e-05,
+                4e-05,
+                4e-05,
+                3e-05,
+                3e-05
+            ]
+        },
+        {
+            "dateCollected": "2023-06-29",
+            "trial": 17,
+            "laserWavelength": 7.80245e-05,
+            "opticalLength": 2.5,
+            "ovenTemp": 140,
+            "laserPower": 0.34,
+            "rotationConversionFactor": 0.015429382220120897,
+            "laserTemp": 1.5,
+            "magneticField": [
+                0.0,
+                7.11
+            ],
+            "rotation": [
+                0.0,
+                0.0
+            ],
+            "magFieldError": [],
+            "rotationError": [
+                5e-05,
+                5e-05
+            ]
+        },
+        {
+            "dateCollected": "2023-06-29",
+            "trial": 18,
+            "laserWavelength": 7.80421e-05,
+            "opticalLength": 2.5,
+            "ovenTemp": 140,
+            "laserPower": 0.34,
+            "rotationConversionFactor": 0.0002581848146153541,
+            "laserTemp": 1.3,
+            "magneticField": [
+                0.0,
+                6.83,
+                13.5,
+                18.7,
+                25.5,
+                31.3
+            ],
+            "rotation": [
+                0.0,
+                0.0011,
+                0.001198,
+                0.00126,
+                0.001343,
+                0.001422
+            ],
+            "magFieldError": [],
+            "rotationError": [
+                4e-06,
+                5e-05,
+                6e-05,
+                6e-05,
+                6e-05,
+                7e-05
+            ]
+        },
+        {
+            "dateCollected": "2023-06-29",
+            "trial": 19,
+            "laserWavelength": 7.80847e-05,
+            "opticalLength": 2.5,
+            "ovenTemp": 140,
+            "laserPower": 0.34,
+            "rotationConversionFactor": 8.746596396751997e-05,
+            "laserTemp": 0.9,
+            "magneticField": [
+                0.0,
+                7.02,
+                13.6,
+                19.5,
+                25.2,
+                31.4
+            ],
+            "rotation": [
+                0.0,
+                5.248e-05,
+                6.299e-05,
+                7.309e-05,
+                8.047e-05,
+                8.752e-05
+            ],
+            "magFieldError": [],
+            "rotationError": [
+                9e-07,
+                3e-06,
+                4e-06,
+                4e-06,
+                4e-06,
+                5e-06
+            ]
+        },
+        {
+            "dateCollected": "2023-06-29",
+            "trial": 20,
+            "laserWavelength": 7.80891e-05,
+            "opticalLength": 2.5,
+            "ovenTemp": 140,
+            "laserPower": 0.34,
+            "rotationConversionFactor": 0.00010030627555167119,
+            "laserTemp": 0.87,
+            "magneticField": [
+                0.0,
+                7.11,
+                13.1,
+                19.3,
+                25.3,
+                31.1
+            ],
+            "rotation": [
+                0.0,
+                4.81e-05,
+                5.617e-05,
+                6.42e-05,
+                7.222e-05,
+                8.026e-05
+            ],
+            "magFieldError": [],
+            "rotationError": [
+                2e-06,
+                4e-06,
+                4e-06,
+                5e-06,
+                5e-06,
+                5e-06
+            ]
+        },
+        {
+            "dateCollected": "2023-06-29",
+            "trial": 21,
+            "laserWavelength": 7.80936e-05,
+            "opticalLength": 2.5,
+            "ovenTemp": 140,
+            "laserPower": 0.34,
+            "rotationConversionFactor": 0.00010147263205495119,
+            "laserTemp": 0.84,
+            "magneticField": [
+                0.0,
+                6.78,
+                13.1,
+                19.4,
+                25.3,
+                31.2
+            ],
+            "rotation": [
+                0.0,
+                3.248e-05,
+                4.059e-05,
+                5.277e-05,
+                5.683e-05,
+                6.497e-05
+            ],
+            "magFieldError": [],
+            "rotationError": [
+                2e-06,
+                3e-06,
+                4e-06,
+                4e-06,
+                4e-06,
+                5e-06
+            ]
+        },
+        {
+            "dateCollected": "2023-06-29",
+            "trial": 22,
+            "laserWavelength": 7.80985e-05,
+            "opticalLength": 2.5,
+            "ovenTemp": 140,
+            "laserPower": 0.34,
+            "rotationConversionFactor": 9.485484770208618e-05,
+            "laserTemp": 0.81,
+            "magneticField": [
+                0.0,
+                6.74,
+                13.2,
+                20.0,
+                25.4,
+                31.4
+            ],
+            "rotation": [
+                0.0,
+                3.225e-05,
+                4.174e-05,
+                4.373e-05,
+                5.142e-05,
+                6.26e-05
+            ],
+            "magFieldError": [],
+            "rotationError": [
+                3e-06,
+                1e-06,
+                8e-07,
+                8e-07,
+                4e-07,
+                8e-08
+            ]
+        }
+    ]
+}
