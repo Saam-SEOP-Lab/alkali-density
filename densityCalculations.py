@@ -100,13 +100,22 @@ def convertItoB(current):
     return b_field
 
 #this is to get the magnetic field for the mainroom set up
-#based on the magnetic field as determined by measuring several B-field values 
-#at currents 0-5amps in 1 amp increments
-def convertItoB_mainroom(current):
+
+def convertItoB_mainroom_DEPRICATED(current):
     num_turns = 100
     radius = 0.1905 #meters
-    #bfield =  2.081*float(current) - 0.07857
+    #based on the magnetic field as determined by measuring several B-field values 
+    #at currents 0-5amps in 1 amp increments
+    #bfield =  2.081*float(current) - 0.07857 
+
+    #calculates B from helmholtz coil eqn
     bfield = b_const*float(current)*num_turns/radius
+    return bfield
+
+#this is to get the magnetic field for the mainroom set up
+#based on EPR data
+def convertItoB_mainroom(current):
+    bfield = current * 2.17
     return bfield
 
 #given a voltage readout, the voltage at 0 field, and a conversion factor,
