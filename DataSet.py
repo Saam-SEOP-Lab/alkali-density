@@ -31,6 +31,14 @@ class DataSet:
         param, pcov = curve_fit(function, x_data, y_data, sigma=error_in_y, absolute_sigma=True)
         fit = cfit.CurveFit(param, pcov)
         return fit
+    
+    def getPcov(self):
+        pcov = self.fit.cov
+        return pcov
+    
+    def getParam(self):
+        param = self.fit.coeff
+        return param
 
     # for data that has been fit to a line, this returns the equation as a nicely formatted string
     def get_equation_linear(self):
@@ -142,7 +150,7 @@ class DataSet:
             #start index is location of value 1
             start_index = index1
             #stop index is end of array
-            stop_index = length-1
+            stop_index = length
 
 
         if (type =="between"):
@@ -173,3 +181,15 @@ class DataSet:
         #units = " cm^-3"
         formatted_density = util.formatter(den, 2)
         return formatted_density
+
+    def get_y_error_vals(self):
+        y_error = self.plotdata.y_error
+        return y_error
+    
+    def get_y_vals(self):
+        y_vals = self.plotdata.y
+        return y_vals
+    
+    def get_x_vals(self):
+        x_vals = self.plotdata.x
+        return x_vals

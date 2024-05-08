@@ -82,7 +82,7 @@ def better_plot(settings):
     ax.errorbar(settings.data_set.x, settings.data_set.y,settings.data_set.y_error, fmt='b.', label='Raw data')
     ax.plot(settings.fit_data.x, settings.fit_data.y, 'black', label='Fitted curve')
     #display chi-squared and equation on plot
-    plt.figtext(0.15, 0.75, "chi-squared: %.2f"%settings.chisqd +"\nEquation: "+ settings.equation +"\nDensity: "+ settings.density_value, fontweight = "bold")
+    plt.figtext(0.15, 0.75, "Equation: "+ settings.equation +"\nDensity: "+ settings.density_value, fontweight = "bold")
 
     #display grid lines
     ax.minorticks_on()

@@ -33,16 +33,17 @@ d1_resonance_f = 3.7719E+14
 
 #D2 transition resonance wavelength
 #units: cm
-d2_resonance_lambda = 7.80E-5
+d2_resonance_lambda = 7.80402E-5
 
 #D2 transition resonance frequency
 #units: Hz
-d2_resonance_f = 3.8435E+14
+d2_resonance_f = 3.842E+14
 
 #constants in the B field equation for helmholz coils
 #B = [(4/5)^(3/2)*4*pi*10^-3]*[IN/R]
 #I is current, N is number of turns of wire in coil and R is radius
-b_const = ((4 / 5)**(3/2)) * 4 * 1E-3 * np.pi
+#this is for the coils used in the front room set up
+b_const = ((4 / 5)**(3/2)) * 4E-3 * np.pi
 
 #given the laser frequency, returns the difference from D1 resonance
 #units: cgs
@@ -91,11 +92,22 @@ def rb_density(slope, o_len, laser_wave):
 
 #given a current value, number of coil turns, and radius of coil,
 #returns the strength of the magnetic field, in Gauss
+#for original helmholtz coils
 def convertItoB(current):
     num_turns = 110
-    radius = 0.21
+    radius = 0.21 #meters
     b_field = b_const*float(current)*num_turns/radius
     return b_field
+
+#this is to get the magnetic field for the mainroom set up
+#based on the magnetic field as determined by measuring several B-field values 
+#at currents 0-5amps in 1 amp increments
+def convertItoB_mainroom(current):
+    num_turns = 100
+    radius = 0.1905 #meters
+    #bfield =  2.081*float(current) - 0.07857
+    bfield = b_const*float(current)*num_turns/radius
+    return bfield
 
 #given a voltage readout, the voltage at 0 field, and a conversion factor,
 #returns the rotation value in radians
@@ -109,7 +121,7 @@ def convertCollectedtoAnalyzable(collected: Type[DataPoint], noB_voltage, conver
     #x - components 
     #B-field units are Gauss
     current = collected.x_val
-    bfield = util.formatter(float(convertItoB(current)), 2)
+    bfield = util.formatter(float(convertItoB_mainroom(current)), 2)
     
     #y-components
     #rotation units are radians
@@ -138,7 +150,7 @@ def convertRawDataArray(raw_data, conversion_factor):
 
 #given 
 # the voltage difference between inital and final readings (in Volts)
-# the rotation value (in degrees, should be ~.25 degrees typically)
+# the rotation value (in degrees, should be ~.4 degrees typically)
 # returns an array containing the conversion factor in radians
 def calculateRotationConversionFactor(voltage_diff, cal_rot):
     cal_rot_Radians = float(cal_rot) * (np.pi/180)

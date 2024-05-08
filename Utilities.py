@@ -2,6 +2,7 @@ import json
 import plotSettings as ps
 import datetime
 import numpy as np
+import random
 
 from os import path
 from datetime import date
@@ -79,7 +80,7 @@ def prepRawDataForFile(raw_data):
     for i in raw_data:
         current_array.append(float(i.x_val))
         voltage_array.append(float(i.y_val))
-        voltage_err_array.append(float(i.x_val))
+        voltage_err_array.append(float(i.y_val/100))
 
     raw = {
         "date": current_time,
@@ -173,12 +174,12 @@ def is_number(s):
         return False
 
 #for prompts requiring numerical input
-def get_response(prompt):
+def get_response(prompt, breakresponses):
     isItNumber = False
     while (isItNumber == False):
         resp = input(prompt)
+        
         isItNumber = is_number(resp)
-
     return resp
     
 #outputs the current date as a string in the form mmddyyyy
@@ -186,3 +187,22 @@ def getDateString():
     today = date.today()
     datestring = today.strftime("%m%d%Y")
     return datestring
+
+def randomNumber(orderOfMagnitude):
+    num = orderOfMagnitude*random.random()
+    return num
+
+def percent_error(measurement, error_val):
+    ratio = error_val/measurement
+    percent_e = np.abs(ratio*100)
+    return percent_e
+
+
+#given the range, 
+#returns an estimate of the standard deviation
+#this uses the "range rule" where std dev is approximately equal to range/4
+#note that range rule assumes that the data is varying randomly and not systematically
+def estimateStandardDev(range):
+    approx_sdev = range/4
+    return approx_sdev
+
