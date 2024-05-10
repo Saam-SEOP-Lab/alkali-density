@@ -3,6 +3,8 @@ from typing import Type
 from DataPoint import DataPoint
 import Utilities as util
 
+######################### CONSTANTS #########################
+
 #bohr magneton value
 #units: erg/Gauss
 mu_b = 9.274E-21
@@ -44,6 +46,8 @@ d2_resonance_f = 3.842E+14
 #I is current, N is number of turns of wire in coil and R is radius
 #this is for the coils used in the front room set up
 b_const = ((4 / 5)**(3/2)) * 4E-3 * np.pi
+
+######################## FUNCTIONS #################################
 
 #given the laser frequency, returns the difference from D1 resonance
 #units: cgs
@@ -115,7 +119,7 @@ def convertItoB_mainroom_DEPRICATED(current):
 #this is to get the magnetic field for the mainroom set up
 #based on EPR data
 def convertItoB_mainroom(current):
-    bfield = current * 2.17
+    bfield = float(current) * 2.17
     return bfield
 
 #given a voltage readout, the voltage at 0 field, and a conversion factor,
@@ -165,4 +169,15 @@ def calculateRotationConversionFactor(voltage_diff, cal_rot):
     cal_rot_Radians = float(cal_rot) * (np.pi/180)
     conversion_factor = cal_rot_Radians/voltage_diff
     return conversion_factor
+
+#Given: 
+# the slope error as found by the covariance matrix
+# the cell's optical length
+# the wavelength of the probe laser
+#Returns:
+# the error in the calculated density 
+def densityError(slope_err, olen, laserwl):
+    s_err = rb_density(slope_err, olen, laserwl)
+    s_err = util.formatter(s_err,0)
+    return s_err
 

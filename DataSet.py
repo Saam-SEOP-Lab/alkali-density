@@ -20,6 +20,8 @@ class DataSet:
         self.fitted_data = self.get_fit_line(samples, ftype)
         self.chisqd = self.get_chi_squared_linefit()
         self.equation = self.get_equation_linear()
+        self.standard_deviation = self.getStdDev()
+
     
     #this takes the function provided when the data set is constructed 
     # and creates a curve fit from it. 
@@ -35,7 +37,13 @@ class DataSet:
     def getPcov(self):
         pcov = self.fit.cov
         return pcov
-    
+
+    def getStdDev(self):
+        pcov = self.getPcov()
+        error = np.sqrt(np.diag(pcov))
+        return error
+
+
     def getParam(self):
         param = self.fit.coeff
         return param

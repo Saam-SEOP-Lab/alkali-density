@@ -11,6 +11,10 @@ class DataPoint:
         self.y_err = y_err
 
     
-    
+class VoltageReading:
 
+    #constructor
+    def __init__(self, v, err):
+        self.voltage = v
+        self.error = err
     

@@ -7,6 +7,10 @@ def line(x,a,b):
     y = a*x + b
     return y
 
+def line_zero_intercept(x, a):
+    y = a*x
+    return y
+
 #quadratic: y = a*x^2+b*x+c
 def quadratic(x, a, b, c):
     y = a*x**2+b*x+c

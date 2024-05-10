@@ -10,28 +10,29 @@ class CalibrationFactor:
         
         self.cal_rotation = cal_rot
         self.lockin_sensitivity = locksense #this must be in volts
-        self.scale_factor = 10/locksense
 
         self.initial_voltage = init_v
         self.initial_voltage_err = init_v_err
         self.final_voltage = fin_v
         self.final_voltage_err = fin_v_err
 
-        self.calibration_factor = self.calculateCalFactor(self.scale_factor, init_v, fin_v, cal_rot)
-        self.calibration_factor_err = self.calculateCalFactorError(self.scale_factor, init_v_err, fin_v_err)
+        self.calibration_factor = self.calculateCalFactor(self.lockin_sensitivity, self.initial_voltage, self.final_voltage, self.cal_rotation)
+        self.calibration_factor_err = self.calculateCalFactorError(self.lockin_sensitivity, self.initial_voltage_err, self.final_voltage_err)
 
         self.laserWavelength = wl
         self.opticalLength = ol
         self.ovenTemp = ot
         self.laserPower = lp
         self.laserTemp = lt
-    
+
+
+
     def calculateCalFactor(self, scale, v_i, v_f, angle):
         #calculate scaling factor from lockin sensitivity
-        scaled_init = abs(scale * v_i)
-        scaled_final = abs(scale * v_f)
-        scaled_diff = scaled_final - scaled_init
-        convsersion_factor = angle * np.pi / (180 * scaled_diff)
+        scaled_init = (scale * v_i) / 10
+        scaled_final = (scale * v_f) / 10
+        scaled_diff = abs(scaled_final - scaled_init)
+        convsersion_factor = (angle * np.pi)/(180 * scaled_diff)
         return convsersion_factor
     
     def calculateCalFactorError(self, scale, v_i_err, v_f_err):
@@ -43,7 +44,6 @@ class CalibrationFactor:
             "dateCollected": self.collection_date,
             "calibrationRotation": self.cal_rotation,
             "lockinSensitivity": self.lockin_sensitivity,
-            "scaleFactor": self.scale_factor,
             "initialVoltage": self.initial_voltage, 
             "initialVoltageError": self.initial_voltage_err,
             "finalVoltage": self.final_voltage,
