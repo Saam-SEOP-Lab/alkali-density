@@ -19,7 +19,7 @@ def getJsonData(path_to_file):
 
     Returns
     -------
-    python object
+    my_data_sets : python object
         Dictionary object constructed from the contents of the specified json file
     """
 
@@ -39,7 +39,7 @@ def count_data_sets(jsonData):
 
     Returns
     -------
-    int
+    data_count : int
         The number of datasets contained within the file
     """
 
@@ -59,7 +59,7 @@ def count_keys(dict_obj):
 
     Returns
     -------
-    int
+    key_count : int
         The number of keys contained within the dictionary.
     """
      
@@ -84,7 +84,7 @@ def find_specific_trial(jsonData, date, trialnum):
 
     Returns
     -------
-    dictionary
+    target_data : dictionary
         Desired dataset as a dictionary object. 
     """
 
@@ -128,7 +128,7 @@ def get_data_from_file(path_to_file, date, trialnum):
 
     Returns
     -------
-    dictionary
+    target_data : dictionary
         Desired dataset as a dictionary object. 
     """
     the_data = getJsonData(path_to_file)
@@ -148,7 +148,7 @@ def formatter(n, p):
 
     Returns
     -------
-    flaot
+    num : float
         Specified value rounded to specified precision.  
     """
 
@@ -161,8 +161,15 @@ def prepRawDataForFile(raw_data):
     Takes an array of raw data points (as an array of DataPoint objects and returns a 
     JSON object to be saved to a file containing all raw data from that round of collection
     
-    Keyword arguments:
-    rawdata -- data recorded from user input and oscilloscope, saved as np arrays  
+    Parameters
+    ----------
+    raw_data : numpy array 
+        A numpy array containing current, voltage, and error values. 
+
+    Returns
+    -------
+    raw : dictionary
+        The raw data formatted to be written to a JSON file.  
     """
 
     #this time is approximately the time at which data collection completed for that set 
@@ -192,12 +199,15 @@ def prepRawDataForFile(raw_data):
 #assumes data is a dictionary object
 def saveDatatoJSON(file, data):
     """
-    Gven a filepath and data to add to a JSON file, opens the JSON file, reads out the data, 
+    Given a filepath and data to add to a JSON file, opens the JSON file, reads out the data, 
     and adds the new data to the end. This assumes data is a dictionary object.
     
-    Keyword arguments:
-    file -- the file in which the data is to be saved. 
-    data -- data to be added to the specified file. 
+    Parameters
+    ----------
+    file_path : string
+        file location as a string
+    data : dictionary 
+        data to save to the specified file
     """
 
     filename = str(file)
@@ -228,15 +238,29 @@ def prepConvertedDataforFile(converted_data, trial_num, laser_wl, opt_len, temp,
     Given an array of datapoints converted to the target measurements, returns a dictionary object matching 
     the format used by the rotationdata.json file.
     
-    Keyword arguments:
-    converted_data -- data to be saved to file. Data should have been converted from raw state to magnetic field and rotation values  
-    trial_num -- trial number associated with dataset 
-    laser_wl -- wavelength of probe laser.
-    opt_len -- optical length of cell. 
-    temp -- Oven temperature at which the data was collected. 
-    power -- laser power, as displayed on the laser control box. 
-    conv_factor --  conversion factor used to transform data from voltage values to rotation values
-    laserT -- laser temperature, as displayed on the laser control box.  
+    Parameters
+    ----------
+    converted_data : dictionary
+        data to be saved to file. Data should have been converted from raw state to magnetic field and rotation values  
+    trial_num : int
+        trial number associated with dataset 
+    laser_wl : float
+        wavelength of probe laser (in cm).
+    opt_len : float
+        optical length of cell (in cm). 
+    temp : int
+        Oven temperature at which the data was collected. 
+    power : float
+        laser power, as displayed on the laser control box. 
+    conv_factor :  float
+        conversion factor used to transform data from voltage values to rotation values
+    laserT : float
+        laser temperature, as displayed on the laser control box.
+
+    Returns
+    -------
+    converted : dictionary
+        The specified data formatted to be written to a JSON file.   
     """
 
     current_date = str(datetime.date.today())
@@ -266,18 +290,18 @@ def prepConvertedDataforFile(converted_data, trial_num, laser_wl, opt_len, temp,
         "rotationError": rotation_err_array
     }
     return converted
-
-#ALSO APPEARS TO BE UNUSED?
-#for prompts resulting in string responses!
-def get_choice(choices, input_prompt):
-  choice = ""
-  while choice not in choices:
-      choice = input(input_prompt).lower()
-  return choice
     
 def getDateString():
     """
     Outputs the current date as a string in the form mmddyyyy.
+    
+    Parameters
+    ----------
+
+    Returns
+    -------
+    datestring : string
+        The current date, formatted as MMDDYYYY.   
     """
     today = date.today()
     datestring = today.strftime("%m%d%Y")
@@ -287,8 +311,15 @@ def randomNumber(orderOfMagnitude):
     """
     Generates a random number of the specified order of magnitude. 
 
-    Keyword arguments:
-    orderOfMagnitude -- power of 10 specifying the order of magnitude for the randomly generated value
+    Parameters
+    ----------
+    orderOfMagnitude : int
+        power of 10 specifying the order of magnitude for the randomly generated value
+
+    Returns
+    -------
+    num : float
+        a random number.   
     """
     num = orderOfMagnitude*random.random()
     return num
@@ -297,9 +328,17 @@ def percent_error(measurement, error_val):
     """
     Calculates the percent error from a specified measurement and error value.  Uses formula 100*error_val/measurement
 
-    Keyword arguments:
-    measurement -- measurement with which to calculate percent error
-    error_val -- error in measurement value. 
+    Parameters
+    ----------
+    measurement : float
+        measurement with which to calculate percent error
+    error_val : float
+        error in measurement value.
+
+    Returns
+    -------
+    percent_e : float
+        the percent error value.
     """
      
     ratio = error_val/measurement
@@ -311,15 +350,34 @@ def estimateStandardDev(range):
     Uses the "Range Rule" to approximate standard deviation from the range of a data set. 
     The Range Rule is an approximation of standard deviation where std_dev = range/4. N
     Note that range rule assumes that the data is varying randomly and not systematically
+    
+    Parameters
+    ----------
+    range : float
+        the range of the data for which the standard deviation is to be estimated. 
 
-    Keyword arguments:
-    range -- the range of the data for which the standard deviation is to be estimated. 
+    Returns
+    -------
+    approx_sdev : float
+        the standard deviation from the mean, as approximated by the range rule.
     """
     approx_sdev = range/4
     return approx_sdev
 
 
 def exportToCSV(fp, fields, formatted_data):
+    """
+    Exports the provided data to a csv file. 
+    
+    Parameters
+    ----------
+    fp : string
+        location to save the data to, as a string.
+    fields : array of strings
+        the headers for the csv as an array. 
+    formatted_data : 2D array 
+        the data to save to the csv file as two dimensional array. 
+    """
 
     filename = str(fp)
     #first check that no files with the same name exist
@@ -350,3 +408,9 @@ def exportToCSV(fp, fields, formatted_data):
 #        resp = input(prompt)
 #        isItNumber = is_number(resp)
 #    return resp
+#for prompts resulting in string responses!
+#def get_choice(choices, input_prompt):
+#  choice = ""
+#  while choice not in choices:
+#      choice = input(input_prompt).lower()
+#  return choice
