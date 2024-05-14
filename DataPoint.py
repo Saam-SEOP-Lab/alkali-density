@@ -14,7 +14,7 @@ class DataPoint:
 class VoltageReading:
 
     #constructor
-    def __init__(self, v, err):
+    def __init__(self, v, tstamp):
         self.voltage = v
-        self.error = err
+        self.timestamp = tstamp
     
