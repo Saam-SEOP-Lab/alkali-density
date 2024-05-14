@@ -3,6 +3,7 @@ import pyvisa as visa # http://github.com/hgrecco/pyvisa
 from struct import unpack
 import time
 from DataPoint import DataPoint
+import datetime
 
 
 
@@ -51,6 +52,8 @@ class Oscope:
         Constructs a measurement query to obtain the measurement value from the oscilloscope.
     collectMean(self, N)
         Collects a number of measurements equal to the set_size variable, averages them and takes the standard deviation.
+    collectVoltage(self)
+        Collects a voltage reading and the time at which that measurement was collected.
     collectUntilDone(self, time_constant)
         Prompts user to enter current value or quit, and records current and corresponding voltages in an array. 
         Additionally this function enforces a wait time of 5x the time constant between measurements. 
@@ -248,8 +251,44 @@ class Oscope:
         #create 2 element array with mean value and standard deviation for that point
         mean = [mean_val, uncert]
         #print the datapoint for now as a sanity check - REMOVE THIS?
-        print(mean)
+        #print(mean)
         return mean
+    
+    #TODO: see if I can get time from scope rather than the computer as it would probably be more accurate
+    def collectVoltage(self):
+        """
+        Collects a voltage reading and the time at which that measurement was collected.
+
+        Parameters
+        ----------
+        self : Oscope
+            Oscope object used to connect to computer, send, and receive data.
+        
+        Returns
+        -------
+        data_point : array
+            Contains the voltage read from the oscilloscope and time it was collected. Format is [voltage, datetime] 
+        """
+        #how many points do we want to measure?
+
+        #create an array of 0's so I can collect a several values at one current value then average
+        data_point = np.array([])
+
+        #set measurement type to mean
+        set_type_mean = self.setMeasurementTypeCommand('MEAN')
+        self.scope.write(set_type_mean)
+        #set source to collect from
+        self.scope.write('MEASUREMENT:IMMED:SOURCE CH1')
+        collect_mean = self.getMeasurementValCommand()
+
+        #get timestamp for collection
+        dp_collection_time = time.time()
+
+        #put the values into the array so we can calculate the mean and standard dev
+        data_point = np.append(data_point, float(self.scope.query(collect_mean)))
+        data_point = np.append(data_point, str(dp_collection_time))
+
+        return data_point
     
 
     def collectUntilDone(self, time_constant):
