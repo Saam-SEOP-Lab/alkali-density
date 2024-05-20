@@ -23,7 +23,8 @@ h = 6.626176E-27
 
 #speed of light 
 #units: cm/s
-light_speed = 29979245800
+#light_speed = 29979245800
+light_speed = 2.998E10
 
 #D1 transition resonance wavelength
 #units: cm
