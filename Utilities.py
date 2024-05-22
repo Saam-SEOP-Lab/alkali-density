@@ -7,7 +7,6 @@ from os import path
 from datetime import date
 import csv
 
-
 def getJsonData(path_to_file):
     """
     Opens a JSON file at the specified location.
