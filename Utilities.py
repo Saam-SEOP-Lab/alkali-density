@@ -6,6 +6,7 @@ import random
 from os import path
 from datetime import date
 import csv
+import pandas as pd
 
 
 def getJsonData(path_to_file):
@@ -387,10 +388,31 @@ def exportToCSV(fp, fields, formatted_data):
         # writing the fields
         csvwriter.writerow(fields)
         # writing the data rows
-        csvwriter.writerows(formatted_data)        
+        csvwriter.writerows(formatted_data)   
 
 
+def stringArraytoFloatArray(str_arry):
+    l = len(str_arry)
+    num_arry = np.zeros(l)
+    for i in range(0,l):
+        num_arry[i] = float(str_arry[i])
+    return num_arry
+        
 
+
+def stringToPandasSeries(strg, delimiter):
+    #assumes a string where data can be broken up by a delimiter
+    #check if there is a newline at the end of the string and remove if present
+    strg = strg.replace('\n', '')
+    arry = strg.split(delimiter)
+    series = pd.Series(arry)
+    return series
+
+def dtStringForFilename():
+    fn = str(datetime.datetime.today())
+    fn = fn.replace(':', '_')
+    fn = fn.replace(' ', '-')
+    return fn
 
 ### TO BE DELETED??
 #chekcs if a given object is a float or not
