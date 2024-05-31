@@ -414,6 +414,35 @@ def dtStringForFilename():
     fn = fn.replace(' ', '-')
     return fn
 
+#takes a time stamp (float) and converts it into an array in the format [date, time]
+def timestampToArray(ts):
+    dt_obj = datetime.datetime.fromtimestamp(ts)
+    dt_arry = str(dt_obj).split(' ')
+    return dt_arry
+
+#takes an array of the form [[A1, B1], [A2, B2], ... , [AN, BN]] 
+#and returns two arrays of the form [A1, A2, ... , AN] and [B1, B2, ... , BN]
+def twoDArryToTwoOneDArry(arry):
+    arry_0 = []
+    arry_1 = []
+
+    for x in arry:
+        arry_0.append(x[0])
+        arry_1.append(x[1])
+    return (arry_0, arry_1)
+
+#takes an array of timestamps and converts it to two arrays, one containing all the dates, the other containing all the times
+def formatTimestampsForCSV(times):
+    arry_0 = []
+    arry_1 = []
+
+    for x in times:
+        temp = timestampToArray(x)
+        arry_0.append(temp[0])
+        arry_1.append(temp[1])
+    
+    return (arry_0, arry_1)
+
 ### TO BE DELETED??
 #chekcs if a given object is a float or not
 #def is_number(s):
