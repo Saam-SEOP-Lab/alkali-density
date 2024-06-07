@@ -6,6 +6,7 @@ import random
 from os import path
 from datetime import date
 import csv
+import pandas as pd
 
 def getJsonData(path_to_file):
     """
@@ -386,10 +387,60 @@ def exportToCSV(fp, fields, formatted_data):
         # writing the fields
         csvwriter.writerow(fields)
         # writing the data rows
-        csvwriter.writerows(formatted_data)        
+        csvwriter.writerows(formatted_data)   
 
 
+def stringArraytoFloatArray(str_arry):
+    l = len(str_arry)
+    num_arry = np.zeros(l)
+    for i in range(0,l):
+        num_arry[i] = float(str_arry[i])
+    return num_arry
+        
 
+
+def stringToPandasSeries(strg, delimiter):
+    #assumes a string where data can be broken up by a delimiter
+    #check if there is a newline at the end of the string and remove if present
+    strg = strg.replace('\n', '')
+    arry = strg.split(delimiter)
+    series = pd.Series(arry)
+    return series
+
+def dtStringForFilename():
+    fn = str(datetime.datetime.today())
+    fn = fn.replace(':', '_')
+    fn = fn.replace(' ', '-')
+    return fn
+
+#takes a time stamp (float) and converts it into an array in the format [date, time]
+def timestampToArray(ts):
+    dt_obj = datetime.datetime.fromtimestamp(ts)
+    dt_arry = str(dt_obj).split(' ')
+    return dt_arry
+
+#takes an array of the form [[A1, B1], [A2, B2], ... , [AN, BN]] 
+#and returns two arrays of the form [A1, A2, ... , AN] and [B1, B2, ... , BN]
+def twoDArryToTwoOneDArry(arry):
+    arry_0 = []
+    arry_1 = []
+
+    for x in arry:
+        arry_0.append(x[0])
+        arry_1.append(x[1])
+    return (arry_0, arry_1)
+
+#takes an array of timestamps and converts it to two arrays, one containing all the dates, the other containing all the times
+def formatTimestampsForCSV(times):
+    arry_0 = []
+    arry_1 = []
+
+    for x in times:
+        temp = timestampToArray(x)
+        arry_0.append(temp[0])
+        arry_1.append(temp[1])
+    
+    return (arry_0, arry_1)
 
 ### TO BE DELETED??
 #chekcs if a given object is a float or not
