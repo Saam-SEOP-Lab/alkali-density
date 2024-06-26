@@ -136,3 +136,12 @@ def createCSVProcessedData(fp, data):
     data.to_csv(fp, mode='w', index=False, header=True)
 
 
+def findDMMOverflowVals(data):
+    rows = data[data['Voltages'] > 10000].index.tolist()
+    return rows
+
+def removeDMMOverflowVals(fp):
+    data = pd.read_csv(fp)
+    to_remove = findDMMOverflowVals(data)
+    clean_data = data.drop(to_remove)
+    return clean_data
