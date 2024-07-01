@@ -8,6 +8,7 @@ from pymeasure.instruments.keithley import Keithley2000
 from pymeasure.adapters import PrologixAdapter
 import math
 import PySimpleGUI as sp
+import dataGrapher as grapher
 
 ########################################## Helper functions go here ##############################################################################
 def getTrigCountCmd(num):
@@ -28,8 +29,81 @@ def collectionTimeToNumCycles(col_time, trig_count, lowtime, hightime):
 ####################################################################################################################################################
 
 
+def createDataCollectionCSV(folder):
+    #do all the document prep at the beginning so it doesn't slow down collection later
+    #create a new csv file at the specified location
+    filename = util.dtStringForFilename()
+    fp = folder + '/' + filename + '.csv'
+    file = open(fp, 'a')
+    #create an empty data frame and save the headers to the file
+    df_headers = pd.DataFrame({'Frequencies': [], 'Voltages': [], 'Times':[], 'Timestamps':[]})
+    df_headers.to_csv(fp, mode='a', index=False)
+    update_message = 'Output file created at ' + fp
+    return update_message, file, fp
+
+def connectToVisaResource(fc):
+    rm = visa.ResourceManager()
+    # Keysight connection setup
+    freq_counter = rm.open_resource(fc)
+    return rm, freq_counter
+
+def setUpFreqCounter(freq_counter, trig_source_cmd, trig_count_cmd):
+    freq_counter.encoding = 'latin_1'
+    freq_counter.source_channel = 'CH1'
+    # Keysight data collection set up
+    ## reset everything and clear the event queues
+    freq_counter.write('*RST')
+    freq_counter.write('STAT:PRES')
+    freq_counter.write('*CLS')
+    ## set the type of measurement to frequency
+    freq_counter.write('CONF:FREQ')
+    freq_counter.write(trig_source_cmd)
+    freq_counter.write('TRIG:SLOP POS')
+    freq_counter.write(trig_count_cmd)
+
+def setUpDaqTask(task, daq_path):
+    task.ao_channels.add_ao_voltage_chan(daq_path)
+    print('Starting Collection')
+    task.start()
+    task.write(0.0)#make sure we are starting at 0V
+
+def connectToDMM(dmm_addr, gpib_channel_no):
+    adapter = PrologixAdapter(dmm_addr, gpib_channel_no) #create prologix adapter and connect to GPIB w/ address 1
+    dmm = Keithley2000(adapter) #create the instrument using the adapter
+    return adapter, dmm
+
+def setUpDMM(dmm, trig_source_cmd, trig_count_cmd):
+    # Keithley data collection set up
+    ## reset everything and clear the event queues
+    dmm.reset()
+    ## need to set trigger type to external
+    dmm.write(trig_source_cmd)
+    ## set trigger count to the desired number of datapoints per collection cycle
+    dmm.write(trig_count_cmd)
+    ## set sample count to 1 (this is one sample per trigger)
+    dmm.write('SAMP:COUN 1')
+
+def tossFirstFCval(freq_counter, task):
+    freq_counter.write('INIT')
+    #do one trigger cycle to get rid of the empty data point that apparently gets collected for reasons?
+    #I hate that this is a thing, but it appears to be a thing, so we're going to roll with it
+    task.write(2.0)
+    time.sleep(0.1)
+    task.write(0.0)
+    time.sleep(0.1)
+    freq_counter.query('R?')#remove the empty data point from the data register, so our time stamps will match up with the frequencies collected
+
+def reinitializeDMMTrace(dmm, trig_count):
+    # set up the data trace so I can get more than one mesurement when we reach the end of the collection cycle
+    # I have to do this here so all the data points stay in sync because of the weird empty value the keysight likes to for it's first trigger cycle
+    cmd_trace = 'TRAC:POIN ' + str(trig_count)
+    dmm.write(cmd_trace)
+    dmm.write('TRAC:FEED SENS1;FEED:CONT NEXT')
+    dmm.write('INIT')
+
+
 def collectKSEData(triggerCount, colLeng, savePath):
-    print = sp.Print
+    #print = sp.Print
 
 ######################################### Set the your collection variables here ###################################################################
 #
@@ -70,92 +144,36 @@ def collectKSEData(triggerCount, colLeng, savePath):
 
     print('Collecting data for '+str(how_many_cycles)+' cycles.')
 
-    #do all the document prep at the beginning so it doesn't slow down collection later
-    #create a new csv file at the specified location
-    filename = util.dtStringForFilename()
-    fp = folder + '/' + filename + '.csv'
-    file = open(fp, 'a')
-    #create an empty data frame and save the headers to the file
-    df_headers = pd.DataFrame({'Frequencies': [], 'Voltages': [], 'Times':[], 'Timestamps':[]})
-    df_headers.to_csv(fp, mode='a', index=False)
-    print('Output file created at ', fp)
+    file_created_msg, file, fp = createDataCollectionCSV(folder)
 
     # open the resource manager so we can connect to the keysight and the keithley
-    rm = visa.ResourceManager()
-
-
-
-    # Keysight connection setup
-    freq_counter = rm.open_resource(keysight_addr)
-    freq_counter.encoding = 'latin_1'
-    freq_counter.source_channel = 'CH1'
-
-    # Keysight data collection set up
-    ## reset everything and clear the event queues
-    freq_counter.write('*RST')
-    freq_counter.write('STAT:PRES')
-    freq_counter.write('*CLS')
-    ## set the type of measurement to frequency
-    freq_counter.write('CONF:FREQ')
-    freq_counter.write(trig_source_cmd)
-    freq_counter.write('TRIG:SLOP POS')
-    freq_counter.write(trig_count_cmd)
+    rm, freq_counter = connectToVisaResource(keysight_addr)
+    setUpFreqCounter(freq_counter, trig_source_cmd, trig_source_cmd)
+    
 
     # DAQ Setup and task initialization
     task = nidaqmx.Task()
-    task.ao_channels.add_ao_voltage_chan(daq_path)
-    print('Starting Collection')
-    task.start()
-    task.write(0.0)#make sure we are starting at 0V
-
-    # Initialize the keysight
-    #freq_counter.write('INIT')
-
-    # Continuing the things I hate, I have to wait until after the garbage cycle completes on the keysight to set up the dmm
-    # because if I don't it gets into a mystery state where it doesn't understand how to send data properly and I don't know why
-    # I would like to fix this correctly by figuring out how to reliably reset the dmm to the state it is in at power up, but since I 
-    # have yet to figure that out, we're doing this stupid work around
+    setUpDaqTask(task, daq_path)
+ 
     # Keithley dmm connection set up
-
-    adapter = PrologixAdapter(dmm_addr, gpib_channel_no) #create prologix adapter and connect to GPIB w/ address 1
-    dmm = Keithley2000(adapter) #create the instrument using the adapter
+    adapter, dmm = connectToDMM(dmm_addr, gpib_channel_no)
 
     # Keithley data collection set up
-    ## reset everything and clear the event queues
-    dmm.reset()
-    ## need to set trigger type to external
-    dmm.write(trig_source_cmd)
-    ## set trigger count to the desired number of datapoints per collection cycle
-    dmm.write(trig_count_cmd)
-    ## set sample count to 1 (this is one sample per trigger)
-    dmm.write('SAMP:COUN 1')
+    setUpDMM(dmm, trig_source_cmd, trig_count_cmd)
 
 
     cycle_num=1
 
     while (cycle_num<=how_many_cycles):
-        freq_counter.write('INIT')
-        #do one trigger cycle to get rid of the empty data point that apparently gets collected for reasons?
-        #I hate that this is a thing, but it appears to be a thing, so we're going to roll with it
-        task.write(2.0)
-        time.sleep(0.1)
-        task.write(0.0)
-        time.sleep(0.1)
-        freq_counter.query('R?')#remove the empty data point from the data register, so our time stamps will match up with the frequencies collected
+        tossFirstFCval(freq_counter, task)
     
-        # set up the data trace so I can get more than one mesurement when we reach the end of the collection cycle
-        # I have to do this here so all the data points stay in sync because of the weird empty value the keysight likes to for it's first trigger cycle
-        cmd_trace = 'TRAC:POIN ' + str(trig_count)
-        dmm.write(cmd_trace)
-        dmm.write('TRAC:FEED SENS1;FEED:CONT NEXT')
-        dmm.write('INIT')
+        reinitializeDMMTrace(dmm, trig_count)
 
         print('Starting Data Collection Cycle '+str(cycle_num))
         times = [] #the timestamps will go here
         frequencies = ''
         dmm_vals = ''
     
-        #times = daqUtils.genAnalogTriggerCycle(task, trig_count, high_V, low_V, high_time, low_time)
         i=0
         while (i<trig_count):
             task.write(high_V) #high voltage value to send (probably stay below 5V in general)

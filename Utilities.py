@@ -7,6 +7,7 @@ from os import path
 from datetime import date
 import csv
 import pandas as pd
+import platform
 
 
 def getJsonData(path_to_file):
@@ -442,6 +443,13 @@ def formatTimestampsForCSV(times):
         arry_1.append(temp[1])
     
     return (arry_0, arry_1)
+
+# Returns the type of computer being used
+# to be used to format file names correctly because Windows T_T
+def whatSystemIsthis():
+    my_system = platform.uname()
+    sys = my_system.system
+    return sys
 
 ### TO BE DELETED??
 #chekcs if a given object is a float or not

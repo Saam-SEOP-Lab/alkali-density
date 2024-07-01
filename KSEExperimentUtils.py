@@ -110,7 +110,7 @@ def convertKSFreqstoFloat(freqs):
 def adjustKSfromDMM(ks, dmm):
     ks_adj = []
     for i in range(0, len(ks)):
-        ks_adj.append(ks[i]+dmm[i])
+        ks_adj.append(ks[i]-dmm[i])
     return ks_adj
 
 def processAllData(filepath, metal, energy):
