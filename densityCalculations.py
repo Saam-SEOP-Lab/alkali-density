@@ -31,7 +31,10 @@ d1_resonance_lambda = 7.948E-5
 
 #D1 transition resonance frequency
 #units: Hz
-d1_resonance_f = 3.7719E+14
+#d1_resonance_f = 3.7719E+14 #Rb87
+#d1_resonance_f = 3.7710739E+14 #rb 85 not shifted
+d1_resonance_f = 3.77107568E+14 #rb 85, cell 309A
+
 
 #D2 transition resonance wavelength
 #units: cm
@@ -39,7 +42,8 @@ d2_resonance_lambda = 7.80402E-5
 
 #D2 transition resonance frequency
 #units: Hz
-d2_resonance_f = 3.842E+14
+#d2_resonance_f = 3.8420406E+14
+d2_resonance_f = 3.842306E+14 #pressure shifted for cell 309A
 
 #constants in the B field equation for helmholz coils
 #B = [(4/5)^(3/2)*4*pi*10^-3]*[IN/R]

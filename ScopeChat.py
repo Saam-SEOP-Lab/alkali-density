@@ -4,6 +4,7 @@ from struct import unpack
 import time
 from DataPoint import DataPoint
 import datetime
+import Utilities as util
 
 
 
@@ -240,14 +241,12 @@ class Oscope:
         collect_mean = self.getMeasurementValCommand()
 
         #put the values into the array so we can calculate the mean and standard dev
-        total = 0
         for i in range(0,set_size):
             data_point[i] = float(self.scope.query(collect_mean))
-            total = total + data_point[i]
 
-        mean_val = total/set_size
+        mean_val = np.average(data_point)
         #calculate standard dev of dataset 
-        uncert = np.std(data_point)
+        uncert = util.meanAbsError(data_point)#np.std(data_point)
         #create 2 element array with mean value and standard deviation for that point
         mean = [mean_val, uncert]
         #print the datapoint for now as a sanity check - REMOVE THIS?

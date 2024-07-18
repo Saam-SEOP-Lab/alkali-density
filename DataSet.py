@@ -181,14 +181,19 @@ class DataSet:
         slope = self.fit.coeff[0]
         wavelength = self.plotdata.laser_wavelength
         optical_path = self.plotdata.optical_length
-        density = calc.rb_density(slope,optical_path, wavelength)
-        return density
-    
+        err = np.average(self.get_y_error_vals())
+        density = abs(calc.rb_density(slope,optical_path, wavelength))
+        err = abs(calc.rb_density(err, optical_path, wavelength))
+        #print(err)
+        return density, err
+
+
     def rb_density_formatted(self):
-        den = self.calculate_rb_density()
+        den, err = self.calculate_rb_density()
         #units = " cm^-3"
         formatted_density = util.formatter(den, 2)
-        return formatted_density
+        formatted_err = util.formatter(err, 0)
+        return formatted_density, formatted_err
 
     def get_y_error_vals(self):
         y_error = self.plotdata.y_error
