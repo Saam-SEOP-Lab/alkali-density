@@ -1,23 +1,18 @@
-from tkinter import *
+#public libraries
+import tkinter as tk
 from tkinter import filedialog
 from tkinter import scrolledtext
 import os
-import DensityCollectionFunctions as dcf
 import pandas as pd
-import Utilities as util
-import os
 from datetime import datetime
 import time
 
-# TODO
-## add the ability to select your base file for data collection
-### account for windows being a butt
-## add a save collected data button that would clear all the text fields and allow you start a new cycle
-### Clear calibration as well
-### maybe add some sort of note that you can load the most recent calibration measurement directly?
-## data processing - but that might actually be a separate thing? IDK
+#my libraries
+import Utilities as util
+import DensityCollectionFunctions as dcf
 
-class App(Tk):
+
+class App(tk.Tk):
 	def __init__(self):
 		super().__init__()
 
@@ -42,22 +37,20 @@ class App(Tk):
 		self.connection_setup()
 
 		# Create some widgets
-		self.header_lbl = Label(self, text="Density Measurement", font=("Ariel", 20))
+		self.header_lbl = tk.Label(self, text="Density Measurement", font=("Ariel", 20))
 		self.header_lbl.grid(row = 0, column = 0, columnspan=2, padx = 10, pady=10)		
 
-		self.reset_btn = Button(self, text="Reset for new trial", command=self.reset_for_new_collection)
+		self.reset_btn = tk.Button(self, text="Reset for new trial", command=self.reset_for_new_collection)
 		self.reset_btn.grid(row=0, column=2, padx=10, pady=10)
 	
-
-		self.quit_button = Button(self, text = "Close", command=self.close)
+		self.quit_button = tk.Button(self, text = "Close", command=self.close)
 		self.quit_button.grid(row = 0, column = 3, padx = 10, pady=10)
 
-		self.base_folder_select_btn = Button(self, text="Select Save Location", command=self.chooseBaseFolder)
-		self.base_folder_select_lbl = Label(self, text="Data will be saved to "+self.raw_data_folder, font=('Ariel',14))
+		self.base_folder_select_btn = tk.Button(self, text="Select Save Location", command=self.chooseBaseFolder)
+		self.base_folder_select_lbl = tk.Label(self, text="Data will be saved to "+self.raw_data_folder, font=('Ariel',14))
 
 		self.base_folder_select_btn.grid(row=1, column=0, padx = 10, pady=10)
 		self.base_folder_select_lbl.grid(row=1, column=1, columnspan=3, padx = 10, pady=10)
-
 
 		# Create a frame outside this function
 		self.calibration_params_frame = Calibration_Parameters(self)
@@ -118,7 +111,7 @@ class App(Tk):
 #####################################################################################
 # DATA COLLECTION MODULE
 #####################################################################################
-class Data_Collection(Frame):
+class Data_Collection(tk.Frame):
 	def __init__(self, parent):
 		super().__init__(parent)
 		self.parent = parent
@@ -137,21 +130,21 @@ class Data_Collection(Frame):
 		})
 
 		#widgets 
-		self.start_data_collection_button = Button(self, text="Start Data Collection", command=self.collection_setup)	
+		self.start_data_collection_button = tk.Button(self, text="Start Data Collection", command=self.collection_setup)	
 		self.start_data_collection_button.grid(row =0, column = 0, padx = 10)	
-		self.raw_data_loc_lbl = Label(self, text="", font=("Ariel", 12))
+		self.raw_data_loc_lbl = tk.Label(self, text="", font=("Ariel", 12))
 		self.raw_data_loc_lbl.grid(row=0, column=2, columnspan=2, padx=10)
 
 		# label for user entry field
-		self.enter_current_label = Label(self, text="Enter Current Value (amps)", font=("Ariel", 14))
+		self.enter_current_label = tk.Label(self, text="Enter Current Value (amps)", font=("Ariel", 14))
 		# user entry fields for current
-		self.enter_current = Entry(self)
+		self.enter_current = tk.Entry(self)
 		#self.saveCurrentCallable = partial(self.save_text_and_clear, self.enter_current)
-		self.submit_button = Button(self, text="Submit", command=self.save_text_and_clear)
+		self.submit_button = tk.Button(self, text="Submit", command=self.save_text_and_clear)
 		
-		self.error_display_lbl = Label(self, text="", fg="red", font=("Ariel", 17))
+		self.error_display_lbl = tk.Label(self, text="", fg="red", font=("Ariel", 17))
 
-		self.data_display = scrolledtext.ScrolledText(self, wrap = WORD, width=100, height=8)
+		self.data_display = scrolledtext.ScrolledText(self, wrap = tk.WORD, width=100, height=8)
 		
 		self.enter_current_label.grid(row=2, column=0, columnspan=2, padx=10)
 		self.enter_current.grid(row=2, column=2, padx=10)
@@ -167,11 +160,11 @@ class Data_Collection(Frame):
 			## show error
 			## disable submit button or discard collected data depending on when validation can happen
 			## try validating on keystroke?
-			self.submit_button["state"]=DISABLED
+			self.submit_button["state"]=tk.DISABLED
 			self.error_display_lbl["text"]="Current value must be a number."
 		else:
 			# if entry is ok, save data to csv like normal
-			self.submit_button["state"]=NORMAL
+			self.submit_button["state"]=tk.NORMAL
 			self.error_display_lbl["text"]=""
 		return isOk
 
@@ -213,7 +206,7 @@ class Data_Collection(Frame):
 		if(isOK==False):
 			self.error_display_lbl["text"]="Current value must be a number."
 		else:
-			self.submit_button["state"]=DISABLED
+			self.submit_button["state"]=tk.DISABLED
 			self.error_display_lbl["text"]=""
 			#also need to diable the button until timeconstant*5 is over
 			total_time = self.time_constant * 5
@@ -232,27 +225,27 @@ class Data_Collection(Frame):
 			})
 			new_row.to_csv(self.data_filepath, mode='a', index=False, header=False)
 			text = str(c)+", "+str(v1)+", "+str(v2)+", "+str(v3)+"\n"
-			self.data_display.insert(END, text)
+			self.data_display.insert(tk.END, text)
 			self.raw_data = pd.concat([self.raw_data, new_row]).reset_index(drop = True)
 			#enforce time constant wait
 			time.sleep(total_time)
 			#clear text from field
 			self.enter_current.delete(0, 'end')
 			#enable button again
-			self.submit_button["state"]=NORMAL
+			self.submit_button["state"]=tk.NORMAL
 
 
 
 #####################################################################################
 # DATA COLLECTION PARAMETERS
 #####################################################################################
-class Collection_Parameters(Frame):
+class Collection_Parameters(tk.Frame):
 	def __init__(self, parent):
 		super().__init__(parent)
 		self.parent = parent
 
 		#put the module on the page
-		self.grid(row=3, column=2, rowspan=11, columnspan=2, sticky=N, padx=10, pady=20)
+		self.grid(row=3, column=2, rowspan=11, columnspan=2, sticky=tk.N, padx=10, pady=20)
 		
 		#create the params file
 		self.paramfilename = "Experiment_Params_" + self.parent.current_date+".csv"
@@ -276,50 +269,50 @@ class Collection_Parameters(Frame):
 
 
 		#widgets
-		self.collection_title_lbl = Label(self, text="Density Measurement Parameters", font=("Ariel", 15))
+		self.collection_title_lbl = tk.Label(self, text="Density Measurement Parameters", font=("Ariel", 15))
  
-		self.import_params_btn = Button(self, text="get params?", command=self.update_from_cal_params)
+		self.import_params_btn = tk.Button(self, text="get params?", command=self.update_from_cal_params)
 
-		self.cell_lbl = Label(self, text="Cell ID:", font=("Ariel", 12))
-		self.oven_temp_lbl = Label(self, text="Oven Temperature (C):", font=("Ariel", 12)) #oven temp, in Celcius
-		self.optical_len_lbl = Label(self, text="Optical Path Length (cm):", font=("Ariel", 12)) #optical length, in cm
-		self.laser_power_lbl = Label(self, text="Laser Power (LD1 value):", font=("Ariel", 12)) #laser power on readout
-		self.laser_temp_lbl = Label(self, text="Laser Temperature (ACT T value):", font=("Ariel", 12)) #laser temp on readout
-		self.laser_wavelen_lbl = Label(self, text="Laser Wavelength (cm):", font=("Ariel", 12)) #laser wavelength, in cm
+		self.cell_lbl = tk.Label(self, text="Cell ID:", font=("Ariel", 12))
+		self.oven_temp_lbl = tk.Label(self, text="Oven Temperature (C):", font=("Ariel", 12)) #oven temp, in Celcius
+		self.optical_len_lbl = tk.Label(self, text="Optical Path Length (cm):", font=("Ariel", 12)) #optical length, in cm
+		self.laser_power_lbl = tk.Label(self, text="Laser Power (LD1 value):", font=("Ariel", 12)) #laser power on readout
+		self.laser_temp_lbl = tk.Label(self, text="Laser Temperature (ACT T value):", font=("Ariel", 12)) #laser temp on readout
+		self.laser_wavelen_lbl = tk.Label(self, text="Laser Wavelength (cm):", font=("Ariel", 12)) #laser wavelength, in cm
 		
-		self.spacer_lbl = Label(self, text="\nUPDATE THE VALUES BELOW BETWEEN CALIBRATION AND COLLECTION\n", font=("Ariel", 12))
-		self.lockin_sensitivity_lbl = Label(self, text="Lock-in Sensitivity (Volts):", font=("Ariel", 12)) #in VOLTS. THIS IS VERY IMPORTANT
-		self.trial_num_lbl = Label(self, text="Trial Number:", font=("Ariel", 12))		
+		self.spacer_lbl = tk.Label(self, text="\nUPDATE THE VALUES BELOW BETWEEN CALIBRATION AND COLLECTION\n", font=("Ariel", 12))
+		self.lockin_sensitivity_lbl = tk.Label(self, text="Lock-in Sensitivity (Volts):", font=("Ariel", 12)) #in VOLTS. THIS IS VERY IMPORTANT
+		self.trial_num_lbl = tk.Label(self, text="Trial Number:", font=("Ariel", 12))		
 
-		self.cell_entry = Entry(self, validatecommand=self.validate_cellname, validate="focusout") #optical length, in cm
-		self.oven_temp_entry = Entry(self, validatecommand=self.validate_oventemp, validate="focusout") #oven temp, in Celcius
-		self.optical_len_entry = Entry(self, validatecommand=self.validate_optlen, validate="focusout") #optical length, in cm
-		self.laser_power_entry = Entry(self, validatecommand=self.validate_laserpower, validate="focusout") #laser power on readout
-		self.laser_temp_entry = Entry(self, validatecommand=self.validate_lasertemp, validate="focusout") #laser temp on readout
-		self.laser_wavelen_entry = Entry(self, validatecommand=self.validate_wavelen, validate="focusout") #laser wavelength, in cm
-		self.lockin_sensitivity_entry = Entry(self, validatecommand=self.validate_lockin, validate="focusout") #in VOLTS. THIS IS VERY IMPORTANT
-		self.trial_num_entry = Entry(self, validatecommand=self.validate_trialnum, validate="focusout") 
+		self.cell_entry = tk.Entry(self, validatecommand=self.validate_cellname, validate="focusout") #optical length, in cm
+		self.oven_temp_entry = tk.Entry(self, validatecommand=self.validate_oventemp, validate="focusout") #oven temp, in Celcius
+		self.optical_len_entry = tk.Entry(self, validatecommand=self.validate_optlen, validate="focusout") #optical length, in cm
+		self.laser_power_entry = tk.Entry(self, validatecommand=self.validate_laserpower, validate="focusout") #laser power on readout
+		self.laser_temp_entry = tk.Entry(self, validatecommand=self.validate_lasertemp, validate="focusout") #laser temp on readout
+		self.laser_wavelen_entry = tk.Entry(self, validatecommand=self.validate_wavelen, validate="focusout") #laser wavelength, in cm
+		self.lockin_sensitivity_entry = tk.Entry(self, validatecommand=self.validate_lockin, validate="focusout") #in VOLTS. THIS IS VERY IMPORTANT
+		self.trial_num_entry = tk.Entry(self, validatecommand=self.validate_trialnum, validate="focusout") 
 
 		#error message display
-		self.error_display_lbl = Label(self, text="", fg="red", font=("Ariel", 17))
+		self.error_display_lbl = tk.Label(self, text="", fg="red", font=("Ariel", 17))
 		#save parameters to file button
-		self.save_experiment_params_btn = Button(self, text="Save Experiment Parameters", command=self.save_exp_params)
-		self.disp_conversion_factor_lbl = Label(self, text="Conversion factor: TBD", font=("Ariel", 12))
+		self.save_experiment_params_btn = tk.Button(self, text="Save Experiment Parameters", command=self.save_exp_params)
+		self.disp_conversion_factor_lbl = tk.Label(self, text="Conversion factor: TBD", font=("Ariel", 12))
 
 		#format the widgets on the page
 		self.collection_title_lbl.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
 		self.import_params_btn.grid(row=0, column=2, columnspan=2, padx=10)
 		#parameter labels (left side)
-		self.cell_lbl.grid(row=1, column=0, columnspan=2, sticky=W, padx=10)
-		self.oven_temp_lbl.grid(row=2, column=0, columnspan=2, sticky=W, padx=10)
-		self.optical_len_lbl.grid(row=3, column=0, columnspan=2, sticky=W, padx=10)
-		self.laser_power_lbl.grid(row=4, column=0, columnspan=2, sticky=W, padx=10)
-		self.laser_temp_lbl.grid(row=5, column=0, columnspan=2, sticky=W, padx=10)
-		self.laser_wavelen_lbl.grid(row=6, column=0, columnspan=2, sticky=W, padx=10)
+		self.cell_lbl.grid(row=1, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.oven_temp_lbl.grid(row=2, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.optical_len_lbl.grid(row=3, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.laser_power_lbl.grid(row=4, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.laser_temp_lbl.grid(row=5, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.laser_wavelen_lbl.grid(row=6, column=0, columnspan=2, sticky=tk.W, padx=10)
 		##these parameters will be different between caliration and collection
 		self.spacer_lbl.grid(row=7, column=0, columnspan=4, padx=10)
-		self.lockin_sensitivity_lbl.grid(row=8, column=0, columnspan=2, sticky=W, padx=10)
-		self.trial_num_lbl.grid(row=9, column=0, columnspan=2, sticky=W, padx=10)
+		self.lockin_sensitivity_lbl.grid(row=8, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.trial_num_lbl.grid(row=9, column=0, columnspan=2, sticky=tk.W, padx=10)
 
 
 		#parameter entry (right)
@@ -406,13 +399,13 @@ class Collection_Parameters(Frame):
 		self.latest_collection_params["Calibration Factor Error"] = [cal_err]
 	
 		#populate entry fields using values above
-		self.cell_entry.insert(END, self.latest_collection_params["Cell"].values[0])
-		self.oven_temp_entry.insert(END,self.latest_collection_params["Oven Temperature"].values[0]) #oven temp, in Celcius
-		self.laser_wavelen_entry.insert(END, self.latest_collection_params["Laser Wavelength"].values[0]) #laser wavelength, in cm
-		self.optical_len_entry.insert(END, self.latest_collection_params["Optical Length"].values[0]) #optical length, in cm
-		self.laser_power_entry.insert(END,self.latest_collection_params["Laser Power"].values[0]) #laser power on readout
-		self.laser_temp_entry.insert(END, self.latest_collection_params["Laser Temperature"].values[0]) #laser temp on readout
-		self.trial_num_entry.insert(END, self.latest_collection_params["Trial Number"].values[0])
+		self.cell_entry.insert(tk.END, self.latest_collection_params["Cell"].values[0])
+		self.oven_temp_entry.insert(tk.END,self.latest_collection_params["Oven Temperature"].values[0]) #oven temp, in Celcius
+		self.laser_wavelen_entry.insert(tk.END, self.latest_collection_params["Laser Wavelength"].values[0]) #laser wavelength, in cm
+		self.optical_len_entry.insert(tk.END, self.latest_collection_params["Optical Length"].values[0]) #optical length, in cm
+		self.laser_power_entry.insert(tk.END,self.latest_collection_params["Laser Power"].values[0]) #laser power on readout
+		self.laser_temp_entry.insert(tk.END, self.latest_collection_params["Laser Temperature"].values[0]) #laser temp on readout
+		self.trial_num_entry.insert(tk.END, self.latest_collection_params["Trial Number"].values[0])
 
 	def save_exp_params(self):
 		#self.checkForParamsFile()
@@ -505,12 +498,12 @@ class Collection_Parameters(Frame):
 #####################################################################################
 # CALIBRATION PARAMETERS
 #####################################################################################
-class Calibration_Parameters(Frame):
+class Calibration_Parameters(tk.Frame):
 	def __init__(self, parent):
 		super().__init__(parent)
 		self.parent = parent
 		# Put this sucker on the screen
-		self.grid(row=3, column=0, rowspan=11, columnspan=2, sticky=N, padx=10, pady=20)
+		self.grid(row=3, column=0, rowspan=11, columnspan=2, sticky=tk.N, padx=10, pady=20)
 
 		#create a calibration file for the day if none exists
 		self.calfilename = "Calibration_" + self.parent.current_date+".csv"
@@ -536,59 +529,59 @@ class Calibration_Parameters(Frame):
 			"Calibration Factor Error": []
 		})
 
-		self.calibration_header = Label(self, text="Calibration", font=("Ariel", 15))
+		self.calibration_header = tk.Label(self, text="Calibration", font=("Ariel", 15))
 
 		# Create data field labels
-		self.cell_lbl = Label(self, text="Cell ID:", font=("Ariel", 12))
-		self.oven_temp_lbl = Label(self, text="Oven Temperature (C):", font=("Ariel", 12)) #oven temp, in Celcius
-		self.optical_len_lbl = Label(self, text="Optical Path Length (cm):", font=("Ariel", 12)) #optical length, in cm
-		self.laser_power_lbl = Label(self, text="Laser Power (LD1 value):", font=("Ariel", 12)) #laser power on readout
-		self.laser_temp_lbl = Label(self, text="Laser Temperature (ACT T value):", font=("Ariel", 12)) #laser temp on readout
-		self.laser_wavelen_lbl = Label(self, text="Laser Wavelength (cm):", font=("Ariel", 12)) #laser wavelength, in cm
+		self.cell_lbl = tk.Label(self, text="Cell ID:", font=("Ariel", 12))
+		self.oven_temp_lbl = tk.Label(self, text="Oven Temperature (C):", font=("Ariel", 12)) #oven temp, in Celcius
+		self.optical_len_lbl = tk.Label(self, text="Optical Path Length (cm):", font=("Ariel", 12)) #optical length, in cm
+		self.laser_power_lbl = tk.Label(self, text="Laser Power (LD1 value):", font=("Ariel", 12)) #laser power on readout
+		self.laser_temp_lbl = tk.Label(self, text="Laser Temperature (ACT T value):", font=("Ariel", 12)) #laser temp on readout
+		self.laser_wavelen_lbl = tk.Label(self, text="Laser Wavelength (cm):", font=("Ariel", 12)) #laser wavelength, in cm
 		
-		self.spacer_lbl = Label(self, text="\nUPDATE THE VALUES BELOW BETWEEN CALIBRATION AND COLLECTION \n", font=("Ariel", 12))
-		self.lockin_sensitivity_lbl = Label(self, text="Lock-in Sensitivity (Volts):", font=("Ariel", 12)) #in VOLTS. THIS IS VERY IMPORTANT
-		self.physical_rotation_lbl = Label(self, text="Calibration Physical Rotation (Degrees):", font=("Ariel", 12)) #the angle (in degrees) rotated on the dial. Note that 1 degree = 1 rotations of the small dial
+		self.spacer_lbl = tk.Label(self, text="\nUPDATE THE VALUES BELOW BETWEEN CALIBRATION AND COLLECTION \n", font=("Ariel", 12))
+		self.lockin_sensitivity_lbl = tk.Label(self, text="Lock-in Sensitivity (Volts):", font=("Ariel", 12)) #in VOLTS. THIS IS VERY IMPORTANT
+		self.physical_rotation_lbl = tk.Label(self, text="Calibration Physical Rotation (Degrees):", font=("Ariel", 12)) #the angle (in degrees) rotated on the dial. Note that 1 degree = 1 rotations of the small dial
 
-		self.cell_entry = Entry(self, validatecommand=self.validate_cellname, validate="focusout") #name of cell being used
-		self.oven_temp_entry = Entry(self, validatecommand=self.validate_oventemp, validate="focusout") #oven temp, in Celcius
-		self.optical_len_entry = Entry(self, validatecommand=self.validate_optlen, validate="focusout") #optical length, in cm
-		self.laser_power_entry = Entry(self, validatecommand=self.validate_laserpower, validate="focusout") #laser power on readout
-		self.laser_temp_entry = Entry(self, validatecommand=self.validate_lasertemp, validate="focusout") #laser temp on readout
-		self.laser_wavelen_entry = Entry(self, validatecommand=self.validate_wavelen, validate="focusout") #laser wavelength, in cm
-		self.lockin_sensitivity_entry = Entry(self, validatecommand=self.validate_lockin, validate="focusout") #in VOLTS. THIS IS VERY IMPORTANT
-		self.physical_rotation_entry = Entry(self, validatecommand=self.validate_rotation, validate="focusout") #the angle (in degrees) rotated on the dial. Note that 1 degree = 1 rotations of the small dial
+		self.cell_entry = tk.Entry(self, validatecommand=self.validate_cellname, validate="focusout") #name of cell being used
+		self.oven_temp_entry = tk.Entry(self, validatecommand=self.validate_oventemp, validate="focusout") #oven temp, in Celcius
+		self.optical_len_entry = tk.Entry(self, validatecommand=self.validate_optlen, validate="focusout") #optical length, in cm
+		self.laser_power_entry = tk.Entry(self, validatecommand=self.validate_laserpower, validate="focusout") #laser power on readout
+		self.laser_temp_entry = tk.Entry(self, validatecommand=self.validate_lasertemp, validate="focusout") #laser temp on readout
+		self.laser_wavelen_entry = tk.Entry(self, validatecommand=self.validate_wavelen, validate="focusout") #laser wavelength, in cm
+		self.lockin_sensitivity_entry = tk.Entry(self, validatecommand=self.validate_lockin, validate="focusout") #in VOLTS. THIS IS VERY IMPORTANT
+		self.physical_rotation_entry = tk.Entry(self, validatecommand=self.validate_rotation, validate="focusout") #the angle (in degrees) rotated on the dial. Note that 1 degree = 1 rotations of the small dial
 
 		#get the calibration values
-		self.collect_cal_btn = Button(self, text="Collect Initial Calibration", command=self.getCal) #initial calibration rotation value
-		self.initial_cal_val_disp = Label(self, text="TBD", font=("Ariel", 12)) #initial calibration rotation value
-		self.final_cal_val_disp = Label(self, text="TBD", font=("Ariel", 12)) #initial calibration rotation value
+		self.collect_cal_btn = tk.Button(self, text="Collect Initial Calibration", command=self.getCal) #initial calibration rotation value
+		self.initial_cal_val_disp = tk.Label(self, text="TBD", font=("Ariel", 12)) #initial calibration rotation value
+		self.final_cal_val_disp = tk.Label(self, text="TBD", font=("Ariel", 12)) #initial calibration rotation value
 
 		#save everything to file
-		self.save_params_button = Button(self, text="Save Calibration", command=self.save_cal_info)
-		self.display_cal_value = Label(self, text="Calibration Factor: TBD",font=("Ariel", 12))	
+		self.save_params_button = tk.Button(self, text="Save Calibration", command=self.save_cal_info)
+		self.display_cal_value = tk.Label(self, text="Calibration Factor: TBD",font=("Ariel", 12))	
 
 		#error message display
-		self.error_display_lbl = Label(self, text="", fg="red", font=("Ariel", 17))
+		self.error_display_lbl = tk.Label(self, text="", fg="red", font=("Ariel", 17))
 
 		#reset the calibration module to take a new calibration measurement
-		self.reset_for_new_cal_btn = Button(self, text="Take A New Calibration Measurement", command = self.clear_cal_info)
+		self.reset_for_new_cal_btn = tk.Button(self, text="Take A New Calibration Measurement", command = self.clear_cal_info)
 
 
 		#organize all the things on screen
 		#header
 		self.calibration_header.grid(row=0, column=0, columnspan=4, padx=10, pady=10)
 		#parameter labels (left side)
-		self.cell_lbl.grid(row=1, column=0, columnspan=2, sticky=W, padx=10)
-		self.oven_temp_lbl.grid(row=2, column=0, columnspan=2, sticky=W, padx=10)
-		self.optical_len_lbl.grid(row=3, column=0, columnspan=2, sticky=W, padx=10)
-		self.laser_power_lbl.grid(row=4, column=0, columnspan=2, sticky=W, padx=10)
-		self.laser_temp_lbl.grid(row=5, column=0, columnspan=2, sticky=W, padx=10)
-		self.laser_wavelen_lbl.grid(row=6, column=0, columnspan=2, sticky=W, padx=10)
+		self.cell_lbl.grid(row=1, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.oven_temp_lbl.grid(row=2, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.optical_len_lbl.grid(row=3, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.laser_power_lbl.grid(row=4, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.laser_temp_lbl.grid(row=5, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.laser_wavelen_lbl.grid(row=6, column=0, columnspan=2, sticky=tk.W, padx=10)
 		##these parameters will be different between caliration and collection
 		self.spacer_lbl.grid(row=7, column=0, columnspan=4)
-		self.lockin_sensitivity_lbl.grid(row=8, column=0, columnspan=2, sticky=W, padx=10)
-		self.physical_rotation_lbl.grid(row=9, column=0, columnspan=2, sticky=W, padx=10)
+		self.lockin_sensitivity_lbl.grid(row=8, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.physical_rotation_lbl.grid(row=9, column=0, columnspan=2, sticky=tk.W, padx=10)
 		#parameter entry (right)
 		self.cell_entry.grid(row=1, column=2, columnspan=2, padx=10)
 		self.oven_temp_entry.grid(row=2, column=2, columnspan=2, padx=10)
@@ -604,11 +597,11 @@ class Calibration_Parameters(Frame):
 		self.error_display_lbl.grid(row=10, column=0, columnspan=4, padx=10)
 
 		#collect calibration vals
-		self.collect_cal_btn.grid(row=11, column=0, columnspan=2, sticky=W, padx=10)
+		self.collect_cal_btn.grid(row=11, column=0, columnspan=2, sticky=tk.W, padx=10)
 		self.initial_cal_val_disp.grid(row=11, column=2, padx=10)
 		self.final_cal_val_disp.grid(row=11, column=3, padx=10)
 		#save all the things to a file
-		self.save_params_button.grid(row=12, column=0, columnspan=2, sticky=W, padx=10)
+		self.save_params_button.grid(row=12, column=0, columnspan=2, sticky=tk.W, padx=10)
 		self.display_cal_value.grid(row=12, column=2, columnspan=2, padx=10)
 
 
@@ -759,5 +752,9 @@ class Calibration_Parameters(Frame):
 
 
 ## RUN THE APP ##
-app = App()
-app.mainloop()
+if __name__ == '__main__':
+	app = App()
+	app.mainloop()
+	
+	#app = App()
+	#app.mainloop()
