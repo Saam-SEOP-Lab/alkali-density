@@ -1,10 +1,10 @@
 import numpy as np
 from scipy.optimize import curve_fit
-import CurveFit as cfit
+import analysis.density_analysis.CurveFit as cfit
 import plotSettings as ps
 import Functions as f
 import Utilities as util
-import densityCalculations as calc
+import analysis.density_analysis.densityCalculations as calc
 
 #DataSet takes two arrays, one for the x coordinates and one for the y coorinates 
 #of a data set

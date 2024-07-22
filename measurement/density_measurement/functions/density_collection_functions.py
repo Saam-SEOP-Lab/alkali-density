@@ -1,13 +1,13 @@
-import Utilities as util
 import numpy as np # http://www.numpy.org/
 import pyvisa as visa # http://github.com/hgrecco/pyvisa
 import time
-import DataPoint
-import pandas as pd
 
+#imports for my modules
+import functions.utilities as util
+#from functions.utilities import meanAbsError
 
-num_points = 10
-scope_addr = 'USB0::0x0699::0x0368::C041014::INSTR'
+#meanAbsError
+
 
 def collectDataPoint(num_avg, time_interval, scope):
     i = 0
@@ -22,21 +22,6 @@ def collectDataPoint(num_avg, time_interval, scope):
     data_point[2]=np.std(data_point_calc) #standard deviation from the mean
     return data_point
 
-def collectUntilDone(resource, time_constant, num_avg, time_interval):
-    
-        print("Beginning data collection.")
-        data = np.array([])
-        while True: 
-            x = collectCurrent(resource)
-            if (str(x) == "quit"):
-                break
-            #waits 5x the time constant on the lock-in before collecting a mean value 
-            time.sleep(5*time_constant)
-            y = collectDataPoint(num_avg, time_interval)
-            collection_point = DataPoint.DataPoint(x, y[0], y[1])
-            data = np.append(data, collection_point)
-        print("Data collection complete")
-        return data
 
 def collectCurrent(resource):
         prompt ='Enter current value in Amps'

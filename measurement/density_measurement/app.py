@@ -8,8 +8,8 @@ from datetime import datetime
 import time
 
 #my libraries
-import Utilities as util
-import DensityCollectionFunctions as dcf
+import functions.utilities as util
+import functions.density_collection_functions as dcf
 
 
 class App(tk.Tk):
@@ -752,9 +752,9 @@ class Calibration_Parameters(tk.Frame):
 
 
 ## RUN THE APP ##
-if __name__ == '__main__':
-	app = App()
-	app.mainloop()
+#if __name__ == '__main__':
+#	app = App()
+#	app.mainloop()
 	
 	#app = App()
 	#app.mainloop()
