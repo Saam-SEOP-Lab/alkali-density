@@ -119,29 +119,47 @@ def processAllData(filepath, metal, energy):
     t_ints = convertTimestampstoInterval(tstamps)
     freq_c = convertKSFreqstoFloat(freq_c)
     freq_c_adj = adjustKSfromDMM(freq_c, dmm_freqs)
-    
-    #make a data frame for these to live in
 
+    #make a data frame for these to live in
     df = pd.DataFrame({
         'Time': t_ints,
         'Keysight': freq_c,
         'DMM': dmm_freqs,
         'Adjusted Keysight Data': freq_c_adj
-        
     })
-
     return df
 
 def createCSVProcessedData(fp, data):
-    data.to_csv(fp, mode='w', index=False, header=True)
+    outfile = open(fp, 'wb')
+    data.to_csv(outfile, index=False, header=True)
+    outfile.close()
 
 
-def findDMMOverflowVals(data):
-    rows = data[data['Voltages'] > 10000].index.tolist()
+def findOverflowVals(data, target_column):
+    rows = data[data[target_column] > 100000000].index.tolist()
     return rows
 
 def removeDMMOverflowVals(fp):
     data = pd.read_csv(fp)
-    to_remove = findDMMOverflowVals(data)
+    to_remove = findOverflowVals(data, 'Voltages')
     clean_data = data.drop(to_remove)
     return clean_data
+
+def removeFreqCounterOverflowVals(fp):
+    data = pd.read_csv(fp)
+    to_remove = findOverflowVals(data, 'Frequencies')
+    clean_data = data.drop(to_remove)
+    return clean_data
+
+def removeAllOverflowVals(fp, list_cols):
+    data = pd.read_csv(fp)
+    for col in list_cols:
+        to_remove = findOverflowVals(data, col)
+        data = data.drop(to_remove)
+    return data
+
+def getAvgAndStdDev(data_set):
+    avg = np.average(data_set)
+    std_dev = np.std(data_set)
+    basic_stats = [avg, std_dev]
+    return basic_stats
