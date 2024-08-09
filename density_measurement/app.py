@@ -523,7 +523,7 @@ class Calibration_Parameters(tk.Frame):
 			"Physical Rotation": [],
 			"Initial Calibration Value": [],
 			"Initial Calibration Error": [],
-			"Final Calibration Error": [],
+			"Final Calibration": [],
 			"Final Calibration Error": [],
 			"Calibration Factor":[],
 			"Calibration Factor Error": []
@@ -693,7 +693,7 @@ class Calibration_Parameters(tk.Frame):
 			self.cal2=dcf.collectDataPoint(5, 0.01, self.parent.my_scope)
 			#for testing when no scope present comment above and use
 			#self.cal2 = [3,0.1,0.1]
-			cal_2_formmated = util.formatter(self.cal1[0], 4)
+			cal_2_formmated = util.formatter(self.cal2[0], 4)
 			self.final_cal_val_disp["text"]=cal_2_formmated
 		else:
 			print("calibration complete")
@@ -731,7 +731,7 @@ class Calibration_Parameters(tk.Frame):
 			"Physical Rotation": [cal_angle],
 			"Initial Calibration Value": [initcal],
 			"Initial Calibration Error": [initcal_err],
-			"Final Calibration Error": [fincal],
+			"Final Calibration": [fincal],
 			"Final Calibration Error": [fincal_err],
 			"Calibration Factor": [cal_factor],
 			"Calibration Factor Error": [cal_factor_error]

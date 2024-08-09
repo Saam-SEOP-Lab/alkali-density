@@ -1,7 +1,5 @@
 import numpy as np
 from typing import Type
-from DataPoint import DataPoint
-import Utilities as util
 
 ######################### CONSTANTS #########################
 
@@ -108,7 +106,6 @@ def convertItoB(current):
     return b_field
 
 #this is to get the magnetic field for the mainroom set up
-
 def convertItoB_mainroom_DEPRICATED(current):
     num_turns = 100
     radius = 0.1905 #meters
@@ -133,38 +130,6 @@ def convertVtoRot(voltage, noB_voltage, conversion):
     rotation = deltaV*conversion
     return rotation
 
-#given a DataPoint containing the current and voltage values, convert that to analyzable data
-def convertCollectedtoAnalyzable(collected: Type[DataPoint], noB_voltage, conversion):
-    #x - components 
-    #B-field units are Gauss
-    current = collected.x_val
-    bfield = util.formatter(float(convertItoB_mainroom(current)), 2)
-    
-    #y-components
-    #rotation units are radians
-    rotation = util.formatter(float(convertVtoRot(collected.y_val, noB_voltage, conversion)), 3)
-    rotation_err = util.formatter(float(collected.y_err*conversion),0)
-    #create a new DataPoint object to store the converted values and return that
-    converted_datum = DataPoint(bfield, rotation, rotation_err)
-    return converted_datum
-
-#given an array of raw data points, 
-#returns an array of analysis data points
-#uses the first point in the array as the 0 value
-#At somepoint, update this to require the arguement to be an array of datapoints
-def convertRawDataArray(raw_data, conversion_factor):
-    converted_data = []
-    
-    #use the first data point for the voltage at 0 value
-    zero_field_voltage = raw_data[0].y_val
-
-    #loop through the array and convert all values to rotation and bfield
-    for i in raw_data:
-        analysis_datum = convertCollectedtoAnalyzable(i, zero_field_voltage, conversion_factor)
-        converted_data.append(analysis_datum)
-    #return the array of converted values
-    return converted_data
-
 #given 
 # the voltage difference between inital and final readings (in Volts)
 # the rotation value (in degrees, should be ~.4 degrees typically)
@@ -180,8 +145,8 @@ def calculateRotationConversionFactor(voltage_diff, cal_rot):
 # the wavelength of the probe laser
 #Returns:
 # the error in the calculated density 
-def densityError(slope_err, olen, laserwl):
-    s_err = rb_density(slope_err, olen, laserwl)
-    s_err = util.formatter(s_err,0)
-    return s_err
+#def densityError(slope_err, olen, laserwl):
+#    s_err = rb_density(slope_err, olen, laserwl)
+#    s_err = util.formatter(s_err,0)
+#    return s_err
 

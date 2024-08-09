@@ -1,7 +1,7 @@
 import numpy as np
 from typing import Type
-from DataPoint import DataPoint
-import Utilities as util
+from ZZ_depricated_remove_eventually.DataPoint import DataPoint
+import ZZ_depricated_remove_eventually.Utilities as util
 
 ######################### CONSTANTS #########################
 
@@ -108,6 +108,7 @@ def convertItoB(current):
     return b_field
 
 #this is to get the magnetic field for the mainroom set up
+
 def convertItoB_mainroom_DEPRICATED(current):
     num_turns = 100
     radius = 0.1905 #meters

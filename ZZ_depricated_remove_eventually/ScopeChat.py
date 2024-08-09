@@ -2,9 +2,9 @@ import numpy as np # http://www.numpy.org/
 import pyvisa as visa # http://github.com/hgrecco/pyvisa
 from struct import unpack
 import time
-from DataPoint import DataPoint
+from ZZ_depricated_remove_eventually.DataPoint import DataPoint
 import datetime
-import Utilities as util
+import ZZ_depricated_remove_eventually.Utilities as util
 
 
 

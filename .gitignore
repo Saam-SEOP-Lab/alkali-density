@@ -160,6 +160,6 @@ cython_debug/
 #.idea/
 
 # Also ignore these files
-Data/
-plots/
+/Data
+/plots
 GUI_experimentation/

@@ -1,5 +1,5 @@
 import json
-import plotSettings as ps
+import ZZ_depricated_remove_eventually.plotSettings as ps
 import datetime
 import numpy as np
 import random
