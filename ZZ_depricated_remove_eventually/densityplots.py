@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
-import plotSettings as ps
+import ZZ_depricated_remove_eventually.plotSettings as ps
 
 
 

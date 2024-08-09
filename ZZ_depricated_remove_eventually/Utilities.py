@@ -1,5 +1,5 @@
 import json
-import plotSettings as ps
+import ZZ_depricated_remove_eventually.plotSettings as ps
 import datetime
 import numpy as np
 import random
@@ -441,6 +441,59 @@ def formatTimestampsForCSV(times):
         arry_1.append(temp[1])
     
     return (arry_0, arry_1)
+
+def meanAbsError(data_set):
+    sum = 0
+    num_pts = len(data_set)
+    avg = np.average(data_set)
+    for i in range(num_pts): 
+        sum += abs(data_set[i] - avg) 
+    error = sum/num_pts
+    return error
+
+def createFilePath(folder, collection_type):
+    filename = collection_type + dtStringForFilename()
+    fp = folder + filename
+    return fp
+
+def createDataCSV(fp, empty_dataframe):
+    file = open(fp, 'a')
+    empty_dataframe.to_csv(fp, mode='a', index=False)
+    return file
+
+def createDataCSV_Indexed(fp, empty_dataframe):
+    file = open(fp, 'a')
+    empty_dataframe.to_csv(fp, mode='a', index=True)
+    return file
+
+def createParamsCSV(fp, params):
+    file = open(fp, 'w')
+    params.to_csv(fp, mode='w', index=False)
+    file.close()
+
+def validate_is_float(text):
+	try:
+		float(text)
+		isFloat=True
+	except ValueError:
+		isFloat=False
+	return isFloat
+
+def validate_text_exists(text):
+    l = len(text)
+    entryExists = False
+    if (l > 0):
+        entryExists=True
+    return entryExists
+
+def entry_exists_is_number(text):
+		exists = validate_text_exists(text)
+		isNum = validate_is_float(text)
+		acceptableNumerical = False
+		if (exists and isNum):
+			acceptableNumerical = True
+		return acceptableNumerical
+
 
 ### TO BE DELETED??
 #chekcs if a given object is a float or not

@@ -1,10 +1,10 @@
 import numpy as np
 from scipy.optimize import curve_fit
 import CurveFit as cfit
-import plotSettings as ps
-import Functions as f
-import Utilities as util
-import densityCalculations as calc
+import ZZ_depricated_remove_eventually.plotSettings as ps
+import ZZ_depricated_remove_eventually.Functions as f
+import ZZ_depricated_remove_eventually.Utilities as util
+import ZZ_depricated_remove_eventually.densityCalculations as calc
 
 #DataSet takes two arrays, one for the x coordinates and one for the y coorinates 
 #of a data set
@@ -181,14 +181,19 @@ class DataSet:
         slope = self.fit.coeff[0]
         wavelength = self.plotdata.laser_wavelength
         optical_path = self.plotdata.optical_length
-        density = calc.rb_density(slope,optical_path, wavelength)
-        return density
-    
+        err = np.average(self.get_y_error_vals())
+        density = abs(calc.rb_density(slope,optical_path, wavelength))
+        err = abs(calc.rb_density(err, optical_path, wavelength))
+        #print(err)
+        return density, err
+
+
     def rb_density_formatted(self):
-        den = self.calculate_rb_density()
+        den, err = self.calculate_rb_density()
         #units = " cm^-3"
         formatted_density = util.formatter(den, 2)
-        return formatted_density
+        formatted_err = util.formatter(err, 0)
+        return formatted_density, formatted_err
 
     def get_y_error_vals(self):
         y_error = self.plotdata.y_error
