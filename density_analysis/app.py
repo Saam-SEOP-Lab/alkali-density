@@ -7,7 +7,7 @@ import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import pandas as pd
-from density_calculations.density_calc import convertItoB_mainroom, convertVtoRot
+from density_calculations.density_calc import convertItoB_mainroom, convertVtoRot, glass_verdet_adj
 import numpy as np
 import pandas as pd
 
@@ -32,6 +32,10 @@ class App(tk.Tk):
 		self.title("Alkali Density Analysis")
 		self.iconbitmap('images/codemy.ico')
 		self.geometry('1200x900')
+
+		#add inputs for verdet constant and glass_depth
+		self.verdet = 1
+		self.verdet_path_len = 1
 		
 		#widgets
 		self.header_lbl = tk.Label(self, text="Density Analysis", font=("Ariel", 20))
@@ -40,8 +44,15 @@ class App(tk.Tk):
 		self.load_file_btn = tk.Button(self, text="What file?", command=self.choose_file)
 		self.load_file_btn.grid(row=1, column=0, padx=10)
 
+		#self.verdet_entry = tk.Entry(self, validatecommand=self.validate_verdet, validate="focusout")
+		#self.verdet_len_entry = tk.Entry(self, validatecommand=self.validate_verdet_len, validate="focusout") 
+ 
+
+
 		self.data_display = scrolledtext.ScrolledText(self, wrap = tk.WORD, width=150, height=30)
 		self.data_display.grid(row=2, column=0, columnspan=4)
+
+		
 
 		#self.plot_lbl = tk.Label(self, text="Plot of Magnetic Field vs Rotation")
 		#self.plot_disp = ""		
@@ -65,6 +76,9 @@ class App(tk.Tk):
 		zero_vs = df["Voltage"].iloc[zero_index].to_list()
 		avg_0 = np.average(zero_vs)
 		return avg_0
+	
+	def validate_verdet(self):
+		pass
 
 		
 	def createProcessedFile(self):
@@ -78,6 +92,7 @@ class App(tk.Tk):
 		voltages_std = self.raw_data["Voltage Standard Deviation"]
 		currents = self.raw_data["Current"]
 		rotations = []
+		verdet_adj_rotations=[]
 		rotation_mae = []
 		rotation_std = []
 		mag_fields = []
@@ -85,7 +100,10 @@ class App(tk.Tk):
 		l = len(voltages)
 		#convert all the voltages to rotations
 		for i in range (0, l):
-			rotations.append(convertVtoRot(voltages[i], zero_rotation_voltage, self.conversion_factor))
+			r = convertVtoRot(voltages[i], zero_rotation_voltage, self.conversion_factor)
+			b = convertItoB_mainroom(currents[i])
+			rotations.append(r)
+			#verdet_adj_rotations.append(glass_verdet_adj(self.verdet, self.verdet_path_len, r, b))
 			rotation_mae.append(voltages_mae[i]*self.conversion_factor)
 			rotation_std.append(voltages_std[i]*self.conversion_factor)
 			mag_fields.append(convertItoB_mainroom(currents[i]))
@@ -93,15 +111,13 @@ class App(tk.Tk):
 		self.processed_data = pd.DataFrame({
 			"Magnetic Field (Gauss)": mag_fields,
 			"Rotation (Radians)": rotations,
+			#"Verdet Adjusted Rotation (Radians)": verdet_adj_rotations,
 			"Rotation Mean Absolute Error": rotation_mae, 
 			"Rotation Standard Deviation": rotation_std
 		})
 		self.data_display.insert(tk.END, self.processed_data)
 		self.processed_data.to_csv(self.processed_filepath)
 
-
-
-		
 
 	def deconstruct_filename(self):
 		fn = self.raw_filename

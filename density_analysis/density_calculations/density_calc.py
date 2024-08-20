@@ -1,5 +1,6 @@
 import numpy as np
 from typing import Type
+from math import log10
 
 ######################### CONSTANTS #########################
 
@@ -49,6 +50,8 @@ d2_resonance_f = 3.842306E+14 #pressure shifted for cell 309A
 #this is for the coils used in the front room set up
 b_const = ((4 / 5)**(3/2)) * 4E-3 * np.pi
 
+#verdet constand of Pyrex Glass at 773nm, in radians/cm*Gauss
+verdet_glass = (2.3e-6)*.3 
 ######################## FUNCTIONS #################################
 
 #given the laser frequency, returns the difference from D1 resonance
@@ -139,14 +142,20 @@ def calculateRotationConversionFactor(voltage_diff, cal_rot):
     conversion_factor = cal_rot_Radians/voltage_diff
     return conversion_factor
 
-#Given: 
-# the slope error as found by the covariance matrix
-# the cell's optical length
-# the wavelength of the probe laser
-#Returns:
-# the error in the calculated density 
-#def densityError(slope_err, olen, laserwl):
-#    s_err = rb_density(slope_err, olen, laserwl)
-#    s_err = util.formatter(s_err,0)
-#    return s_err
+#removes the rotation caused by the verdet constant of the glass in the cell
+# verdet constant should be in units of radians/cm*Tesla
+# glass_depth should be in units of cm
+# mag_field should be in units of Gauss
+def glass_verdet_adj(verdet, glass_depth, rot_val, mag_field_val):
+    verdet_adjment = (verdet*glass_depth)*mag_field_val
+    adjusted_rot = rot_val-verdet_adjment
+    return adjusted_rot
 
+# takes a temp in Celcuis and returns the Killian estimated density value of Rb
+def killian_density(temp):
+    T = float(temp) + 273.15
+    a=26.41
+    b=4132/T
+    c = log10(T)
+    rb_den = 10 **(a-b-c)
+    return rb_den
