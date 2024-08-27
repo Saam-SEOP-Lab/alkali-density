@@ -2,12 +2,8 @@
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import scrolledtext
-from matplotlib.figure import Figure
-import matplotlib
-matplotlib.use("TkAgg")
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import pandas as pd
-from density_calculations.density_calc import convertItoB_mainroom, convertVtoRot, glass_verdet_adj
+from density_calculations.density_calc import convertItoB_mainroom, convertVtoRot, get_info_from_fname, get_my_data_no_file, convert_to_cm_if_needed
 import numpy as np
 import pandas as pd
 
@@ -28,6 +24,15 @@ class App(tk.Tk):
 	def __init__(self):
 		super().__init__()
 		
+
+		self.final_data = pd.DataFrame({'Date': [],
+                        'Cell Name': [],
+                        'Temperature':[],
+                        'Density':[],
+                        'Density Error':[], 
+                        'Killian Value':[] })
+		
+
         # Title, icon, size
 		self.title("Alkali Density Analysis")
 		self.iconbitmap('images/codemy.ico')
@@ -47,24 +52,14 @@ class App(tk.Tk):
 		#self.verdet_entry = tk.Entry(self, validatecommand=self.validate_verdet, validate="focusout")
 		#self.verdet_len_entry = tk.Entry(self, validatecommand=self.validate_verdet_len, validate="focusout") 
  
-
-
 		self.data_display = scrolledtext.ScrolledText(self, wrap = tk.WORD, width=150, height=30)
 		self.data_display.grid(row=2, column=0, columnspan=4)
 
-		
+		self.analysis_section = tk.Label(self, text="Analysis", font=("Ariel", 20))
+		self.analysis_section.grid(row=5, column=0, padx=10)
+		self.analysis_display = scrolledtext.ScrolledText(self, wrap = tk.WORD, width=150, height=10)
+		self.analysis_display.grid(row=6,column=0,padx=10)
 
-		#self.plot_lbl = tk.Label(self, text="Plot of Magnetic Field vs Rotation")
-		#self.plot_disp = ""		
-		#code for a generic plot - update this later 
-		#f = Figure(figsize=(5,5), dpi=100)
-		#a = f.add_subplot(111)
-		#a.plot([1,2,3,4,5,6,7,8],[5,6,1,3,8,9,3,5])
-		#canvas = FigureCanvasTkAgg(f, self)
-		#canvas.get_tk_widget().grid(row=2, column=0, columnspan=4)
-		#toolbar = NavigationToolbar2Tk(canvas, self)
-		#toolbar.update()
-		#canvas._tkcanvas.grid(row=3, column=0, columnspan=4)
 
 	#we have been taking two data points at 0 field because of the current switch
 	#handle this by taking the two 0 values and averagating them. Use that voltage as 0 rotation
@@ -96,7 +91,6 @@ class App(tk.Tk):
 		rotation_mae = []
 		rotation_std = []
 		mag_fields = []
-		print(voltages)
 		l = len(voltages)
 		#convert all the voltages to rotations
 		for i in range (0, l):
@@ -139,10 +133,12 @@ class App(tk.Tk):
 		all_params = pd.read_csv(self.param_filepath)
 		#find the row that matches the trial number in the filename selected 
 		# filter rows based on list values
-		experiment_params = all_params.loc[all_params['Trial Number'] == int(self.trial_num)].reset_index()
-		self.conversion_factor = float(experiment_params['Conversion Factor'][0])
-		self.conversion_factor_err = float(experiment_params['Conversion Factor Error'][0])
-
+		experiment_params = all_params.loc[all_params['TrialNumber'] == int(self.trial_num)].reset_index()
+		self.conversion_factor = float(experiment_params['ConversionFactor'][0])
+		self.conversion_factor_err = float(experiment_params['ConversionFactorError'][0])
+		self.optical_length = float(experiment_params['OpticalLength'][0])
+		self.probe_beam = convert_to_cm_if_needed(float(experiment_params['LaserWavelength'][0]))
+		self.D2resonance = convert_to_cm_if_needed(float(experiment_params['D2Resonance'][0]))
 
 	def choose_file(self):
 		file = filedialog.askopenfilename(filetypes=[('CSV files', '*.csv')])
@@ -154,11 +150,22 @@ class App(tk.Tk):
 			self.deconstruct_filename()#use the file name to get info about the trial to match to the params file
 			self.get_experiment_params()
 			self.createProcessedFile()
-
+			self.analyze_me()
 	
+	def analyze_me(self):
+		#get the data from the parent (assumes that we just created a processed file)
+		#get the date, cellname, and temp
+		print(self.processed_filename)
+		date, cellname, temp = get_info_from_fname(self.processed_filename)
+		olen = self.optical_length
+		wl = self.probe_beam 
+		D1 = 7.948E-5
+		D2 = 7.80032e-5 #this will be included in the experimental params later for now hard code
+		data = self.processed_data
+		self.result = get_my_data_no_file(date, cellname, temp, data, D1, D2, wl, olen)
+		print(self.result)
+		self.analysis_display.insert(tk.END, self.result)
 
-
-		
 
 	
 			

@@ -6,13 +6,12 @@ import os
 import pandas as pd
 from datetime import datetime
 import time
-import numpy as np
+
 
 
 #my libraries
 import functions.utilities as util
 import functions.density_collection_functions as dcf
-from functions.density_calc import convertItoB_mainroom, convertVtoRot, glass_verdet_adj
 
 
 
@@ -60,7 +59,6 @@ class App(tk.Tk):
 		self.calibration_params_frame = Calibration_Parameters(self)
 		self.collection_params_frame = Collection_Parameters(self)
 		self.collection_module_frame = Data_Collection(self)
-		self.processing_module_frame = Data_Processing(self)
 
 
 	def connection_setup(self):
@@ -106,127 +104,6 @@ class App(tk.Tk):
 		self.calibration_params_frame = Calibration_Parameters(self)
 		self.collection_params_frame = Collection_Parameters(self)
 		self.collection_module_frame = Data_Collection(self)
-
-
-		
-#####################################################################################
-# DATA PROCESSING MODULE
-#####################################################################################
-class Data_Processing(tk.Frame):
-	def __init__(self, parent):
-		super().__init__(parent)
-		self.parent = parent
-		self.grid(row = 21, column=0, columnspan=4, padx=10, pady=10)
-
-		#widgets 
-		self.select_raw_data_file_button = tk.Button(self, text="Select file", command=self.choose_file)
-		self.filename_header_label = tk.Label(self, text= "Selected File: ")
-		self.filename_display_label = tk.Label(self, text="No file selected")
-		self.process_file_button = tk.Button(self, text="Process Selected File", command=self.createProcessedFile)
-		self.processing_feedback_label = tk.Label(self, text="Info will display here", font=("Ariel", 14))
-
-		#display the widgets
-		self.select_raw_data_file_button.grid(row=1, column=0)
-		self.filename_header_label.grid(row=1, column=1)
-		self.filename_display_label.grid(row=1, column=2)
-		self.process_file_button.grid(row=1, column=3)
-		self.processing_feedback_label.grid(row=2, column=0)
-
-	def choose_file(self):
-		# eventually I would like to default to the most recently collected data file if it exists
-		# for not the simple solution is to just select a file so we're doing that
-		file = filedialog.askopenfilename(filetypes=[('CSV files', '*.csv')])
-		if file is not None:
-			self.raw_data = pd.read_csv(file)
-			rf = str(file).split("/")
-			self.raw_filename = (rf.pop()).split(".")[0] #get last element of array, also that is removed from rf
-			self.base_filepath = self.reconstruct_basefilepath(rf)
-			self.deconstruct_filename()#use the file name to get info about the trial to match to the params file
-			self.get_experiment_params()
-			self.processed_filename = self.raw_filename+"_processed.csv"
-			self.processed_filepath = self.base_filepath+self.processed_filename
-			self.filename_display_label["text"] = self.processed_filepath
-			
-			#self.createProcessedFile()
-
-	#we have been taking two data points at 0 field because of the current switch
-	#handle this by taking the two 0 values and averagating them. Use that voltage as 0 rotation
-	def getZeroRotationVoltage(self):
-		# find all instances of 0 current, use those as our 0 rotation
-		# if there is more than one, average the voltages at 0 current and return that 
-		df = self.raw_data
-		zero_index = df.loc[df["Current"] == 0].index.tolist()
-		zero_vs = df["Voltage"].iloc[zero_index].to_list()
-		avg_0 = np.average(zero_vs)
-		return avg_0
-	
-	def validate_verdet(self):
-		pass
-
-		
-	def createProcessedFile(self):
-		#self.processed_filename = self.raw_filename+"_processed.csv"
-		#self.processed_filepath = self.base_filepath+self.processed_filename
-		#get raw data as dataframe transform voltage to rotation
-		zero_rotation_voltage = self.getZeroRotationVoltage() 
-
-		voltages = self.raw_data["Voltage"]
-		voltages_mae = self.raw_data["Voltage Mean Absolute Error"]
-		voltages_std = self.raw_data["Voltage Standard Deviation"]
-		currents = self.raw_data["Current"]
-		rotations = []
-		verdet_adj_rotations=[]
-		rotation_mae = []
-		rotation_std = []
-		mag_fields = []
-		print(voltages)
-		l = len(voltages)
-		#convert all the voltages to rotations
-		for i in range (0, l):
-			r = convertVtoRot(voltages[i], zero_rotation_voltage, self.conversion_factor)
-			b = convertItoB_mainroom(currents[i])
-			rotations.append(r)
-			#verdet_adj_rotations.append(glass_verdet_adj(self.verdet, self.verdet_path_len, r, b))
-			rotation_mae.append(voltages_mae[i]*self.conversion_factor)
-			rotation_std.append(voltages_std[i]*self.conversion_factor)
-			mag_fields.append(convertItoB_mainroom(currents[i]))
-		#convert current to magnetic field
-		self.processed_data = pd.DataFrame({
-			"Magnetic Field (Gauss)": mag_fields,
-			"Rotation (Radians)": rotations,
-			#"Verdet Adjusted Rotation (Radians)": verdet_adj_rotations,
-			"Rotation Mean Absolute Error": rotation_mae, 
-			"Rotation Standard Deviation": rotation_std
-		})
-		#self.data_display.insert(tk.END, self.processed_data)
-		self.processed_data.to_csv(self.processed_filepath)
-
-
-	def deconstruct_filename(self):
-		fn = self.raw_filename
-		fn_arr = fn.split("_")
-		self.date = fn_arr[0]
-		self.cell_id = fn_arr[1].split("-")[1]
-		self.oven_temp = fn_arr[2].split("-")[1]
-		self.trial_num = fn_arr[3].split("-")[1]
-
-	def reconstruct_basefilepath(self, arr):
-		basefp = ""
-		for a in arr:
-			basefp = basefp+a+"/"
-		return basefp
-	
-	def get_experiment_params(self):
-		self.param_filename = "Experiment_Params_"+self.date+".csv"
-		self.param_filepath = self.base_filepath+self.param_filename
-		all_params = pd.read_csv(self.param_filepath)
-		#find the row that matches the trial number in the filename selected 
-		# filter rows based on list values
-		experiment_params = all_params.loc[all_params['Trial Number'] == int(self.trial_num)].reset_index()
-		self.conversion_factor = float(experiment_params['Conversion Factor'][0])
-		self.conversion_factor_err = float(experiment_params['Conversion Factor Error'][0])
-
-
 
 
 #####################################################################################
@@ -295,10 +172,10 @@ class Data_Collection(tk.Frame):
 		self.num_points = 10
 		#get the most recent experiment parameters
 		exp_params = self.parent.collection_params_frame.collection_params
-		l = len(exp_params["Trial Number"])
-		trial = "trial-"+str(exp_params["Trial Number"].values[l-1])
+		l = len(exp_params["TrialNumber"])
+		trial = "trial-"+str(exp_params["TrialNumber"].values[l-1])
 		cell = "cell-"+str(exp_params["Cell"].values[l-1])
-		temp = "temp-"+str(exp_params["Oven Temperature"].values[l-1])
+		temp = "temp-"+str(exp_params["OvenTemperature"].values[l-1])
 		date = str(self.parent.current_date)
 		self.data_filename =  date+"_"+cell+"_"+temp+"_"+trial+".csv"
 		#create empty file for data collection
@@ -375,17 +252,18 @@ class Collection_Parameters(tk.Frame):
 		self.latest_collection_params = pd.DataFrame({
 				"Date": [],
 				"Cell": [],
-				"Oven Temperature": [],
-				"Laser Wavelength": [],
-				"Trial Number": [], 
-				"Optical Length": [],
-				"Laser Power": [], 
-				"Laser Temperature": [], 
-				"Lock-in Sensitivity": [],
-				"Calibration Factor":[],
-				"Calibration Factor Error": [], 
-				"Conversion Factor" : [],
-				"Conversion Factor Error" : []
+				"OvenTemperature": [],
+				"LaserWavelength": [],
+				"D2Resonance":[],
+				"TrialNumber": [], 
+				"OpticalLength": [],
+				"LaserPower": [], 
+				"LaserTemperature": [], 
+				"Lock-inSensitivity": [],
+				"CalibrationFactor":[],
+				"CalibrationFactor Error": [], 
+				"ConversionFactor" : [],
+				"ConversionFactorError" : []
 			})
 
 
@@ -400,6 +278,8 @@ class Collection_Parameters(tk.Frame):
 		self.laser_power_lbl = tk.Label(self, text="Laser Power (LD1 value):", font=("Ariel", 12)) #laser power on readout
 		self.laser_temp_lbl = tk.Label(self, text="Laser Temperature (ACT T value):", font=("Ariel", 12)) #laser temp on readout
 		self.laser_wavelen_lbl = tk.Label(self, text="Laser Wavelength (cm):", font=("Ariel", 12)) #laser wavelength, in cm
+		self.D2_wavelen_lbl = tk.Label(self, text="D2 Resonance Wavelength (cm):", font=("Ariel", 12)) #D2 wavelength, in cm
+
 		
 		self.spacer_lbl = tk.Label(self, text="\nUPDATE THE VALUES BELOW BETWEEN CALIBRATION AND COLLECTION\n", font=("Ariel", 12))
 		self.lockin_sensitivity_lbl = tk.Label(self, text="Lock-in Sensitivity (Volts):", font=("Ariel", 12)) #in VOLTS. THIS IS VERY IMPORTANT
@@ -411,6 +291,8 @@ class Collection_Parameters(tk.Frame):
 		self.laser_power_entry = tk.Entry(self, validatecommand=self.validate_laserpower, validate="focusout") #laser power on readout
 		self.laser_temp_entry = tk.Entry(self, validatecommand=self.validate_lasertemp, validate="focusout") #laser temp on readout
 		self.laser_wavelen_entry = tk.Entry(self, validatecommand=self.validate_wavelen, validate="focusout") #laser wavelength, in cm
+		self.D2_wavelen_entry = tk.Entry(self, validatecommand=self.validate_d2wavelen, validate="focusout") #d2 wavelength, in cm
+
 		self.lockin_sensitivity_entry = tk.Entry(self, validatecommand=self.validate_lockin, validate="focusout") #in VOLTS. THIS IS VERY IMPORTANT
 		self.trial_num_entry = tk.Entry(self, validatecommand=self.validate_trialnum, validate="focusout") 
 
@@ -430,10 +312,12 @@ class Collection_Parameters(tk.Frame):
 		self.laser_power_lbl.grid(row=4, column=0, columnspan=2, sticky=tk.W, padx=10)
 		self.laser_temp_lbl.grid(row=5, column=0, columnspan=2, sticky=tk.W, padx=10)
 		self.laser_wavelen_lbl.grid(row=6, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.D2_wavelen_lbl.grid(row=7, column=0, columnspan=2, sticky=tk.W, padx=10)
+
 		##these parameters will be different between caliration and collection
-		self.spacer_lbl.grid(row=7, column=0, columnspan=4, padx=10)
-		self.lockin_sensitivity_lbl.grid(row=8, column=0, columnspan=2, sticky=tk.W, padx=10)
-		self.trial_num_lbl.grid(row=9, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.spacer_lbl.grid(row=8, column=0, columnspan=4, padx=10)
+		self.lockin_sensitivity_lbl.grid(row=9, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.trial_num_lbl.grid(row=10, column=0, columnspan=2, sticky=tk.W, padx=10)
 
 
 		#parameter entry (right)
@@ -443,15 +327,17 @@ class Collection_Parameters(tk.Frame):
 		self.laser_power_entry.grid(row=4, column=2, columnspan=2, padx=10)
 		self.laser_temp_entry.grid(row=5, column=2, columnspan=2, padx=10)
 		self.laser_wavelen_entry.grid(row=6, column=2, columnspan=2, padx=10)
+		self.D2_wavelen_entry.grid(row=7, column=2, columnspan=2, padx=10)
+
 		##these parameters will be different between caliration and collection
-		self.lockin_sensitivity_entry.grid(row=8, column=2, columnspan=2, padx=10)		
-		self.trial_num_entry.grid(row=9, column=2, columnspan=2, padx=10)
+		self.lockin_sensitivity_entry.grid(row=9, column=2, columnspan=2, padx=10)		
+		self.trial_num_entry.grid(row=10, column=2, columnspan=2, padx=10)
 
 		# user feedback/error display
-		self.error_display_lbl.grid(row = 10, column=0, columnspan=4, padx=10)
+		self.error_display_lbl.grid(row = 11, column=0, columnspan=4, padx=10)
 
-		self.save_experiment_params_btn.grid(row=11, column=0)
-		self.disp_conversion_factor_lbl.grid(row=12, column=0)
+		self.save_experiment_params_btn.grid(row=12, column=0)
+		self.disp_conversion_factor_lbl.grid(row=13, column=0)
 
 
 ####################################################################################################
@@ -464,13 +350,13 @@ class Collection_Parameters(tk.Frame):
 		## if the file does exist, load the data into self.collection_params
 		if(paramsFileCreated): 
 			self.collection_params = pd.read_csv(self.param_filepath)
-			n = len(self.collection_params["Trial Number"])
+			n = len(self.collection_params["TrialNumber"])
 			if (n==0):
 				#case: file was created but nothing was saved
 				self.trial_num=1
 			else:
 				#case: file was created and previous data has been collected
-				self.trial_num = self.collection_params["Trial Number"].values[n-1]+1
+				self.trial_num = self.collection_params["TrialNumber"].values[n-1]+1
 		## if there is not a file for today's collection create one
 		else: 
 			#case: file was not yet created, so create it and set trial number to 1
@@ -500,33 +386,36 @@ class Collection_Parameters(tk.Frame):
 		#how many calibration measurements are present?
 		num_cals = len(cal_params["Cell"])
 		cell = cal_params["Cell"][num_cals-1]
-		oven = cal_params["Oven Temperature"][num_cals-1]
-		wavelength = cal_params["Laser Wavelength"][num_cals-1]
-		optical_len = cal_params["Optical Length"][num_cals-1]
-		laser_power = cal_params["Laser Power"][num_cals-1]
-		laser_temp = cal_params["Laser Temperature"][num_cals-1]
-		cal_f = cal_params["Calibration Factor"][num_cals-1]
-		cal_err = cal_params["Calibration Factor Error"][num_cals-1]
+		oven = cal_params["OvenTemperature"][num_cals-1]
+		wavelength = cal_params["LaserWavelength"][num_cals-1]
+		d2res = cal_params["D2Resonance"][num_cals-1]
+		optical_len = cal_params["OpticalLength"][num_cals-1]
+		laser_power = cal_params["LaserPower"][num_cals-1]
+		laser_temp = cal_params["LaserTemperature"][num_cals-1]
+		cal_f = cal_params["CalibrationFactor"][num_cals-1]
+		cal_err = cal_params["CalibrationFactorError"][num_cals-1]
 
 		self.latest_collection_params["Date"] = [self.parent.current_date]
 		self.latest_collection_params["Cell"] = [cell]
-		self.latest_collection_params["Oven Temperature"] = [oven]
-		self.latest_collection_params["Laser Wavelength"] = [wavelength]
-		self.latest_collection_params["Optical Length"] = [optical_len]
-		self.latest_collection_params["Laser Power"] = [laser_power]
-		self.latest_collection_params["Laser Temperature"] = [laser_temp]
-		self.latest_collection_params["Trial Number"] = [self.trial_num]
-		self.latest_collection_params["Calibration Factor"] = [cal_f]
-		self.latest_collection_params["Calibration Factor Error"] = [cal_err]
+		self.latest_collection_params["OvenTemperature"] = [oven]
+		self.latest_collection_params["LaserWavelength"] = [wavelength]
+		self.latest_collection_params["D2Resonance"] = [d2res]
+		self.latest_collection_params["OpticalLength"] = [optical_len]
+		self.latest_collection_params["LaserPower"] = [laser_power]
+		self.latest_collection_params["LaserTemperature"] = [laser_temp]
+		self.latest_collection_params["TrialNumber"] = [self.trial_num]
+		self.latest_collection_params["CalibrationFactor"] = [cal_f]
+		self.latest_collection_params["CalibrationFactorError"] = [cal_err]
 	
 		#populate entry fields using values above
 		self.cell_entry.insert(tk.END, self.latest_collection_params["Cell"].values[0])
-		self.oven_temp_entry.insert(tk.END,self.latest_collection_params["Oven Temperature"].values[0]) #oven temp, in Celcius
-		self.laser_wavelen_entry.insert(tk.END, self.latest_collection_params["Laser Wavelength"].values[0]) #laser wavelength, in cm
-		self.optical_len_entry.insert(tk.END, self.latest_collection_params["Optical Length"].values[0]) #optical length, in cm
-		self.laser_power_entry.insert(tk.END,self.latest_collection_params["Laser Power"].values[0]) #laser power on readout
-		self.laser_temp_entry.insert(tk.END, self.latest_collection_params["Laser Temperature"].values[0]) #laser temp on readout
-		self.trial_num_entry.insert(tk.END, self.latest_collection_params["Trial Number"].values[0])
+		self.oven_temp_entry.insert(tk.END,self.latest_collection_params["OvenTemperature"].values[0]) #oven temp, in Celcius
+		self.laser_wavelen_entry.insert(tk.END, self.latest_collection_params["LaserWavelength"].values[0]) #laser wavelength, in cm
+		self.D2_wavelen_entry.insert(tk.END, self.latest_collection_params["D2Resonance"].values[0])
+		self.optical_len_entry.insert(tk.END, self.latest_collection_params["OpticalLength"].values[0]) #optical length, in cm
+		self.laser_power_entry.insert(tk.END,self.latest_collection_params["LaserPower"].values[0]) #laser power on readout
+		self.laser_temp_entry.insert(tk.END, self.latest_collection_params["LaserTemperature"].values[0]) #laser temp on readout
+		self.trial_num_entry.insert(tk.END, self.latest_collection_params["TrialNumber"].values[0])
 
 	def save_exp_params(self):
 		#self.checkForParamsFile()
@@ -536,16 +425,16 @@ class Collection_Parameters(tk.Frame):
 			cal_params = self.temp_cal_params
 
 		num_cals = len(cal_params["Cell"])
-		cal_f = float(cal_params["Calibration Factor"][num_cals-1])
-		cal_error = float(cal_params["Calibration Factor Error"][num_cals-1])
+		cal_f = float(cal_params["CalibrationFactor"][num_cals-1])
+		cal_error = float(cal_params["CalibrationFactorError"][num_cals-1])
 		lock_in_setting = float(self.lockin_sensitivity_entry.get())
 		conv_f = dcf.calculate_conversion_factor(lock_in_setting, cal_f) 
 		conv_err = dcf.calculate_conversion_factor(lock_in_setting, cal_error)
 
-		self.latest_collection_params["Trial Number"] = [self.trial_num_entry.get()]
-		self.latest_collection_params["Lock-in Sensitivity"] = [lock_in_setting]
-		self.latest_collection_params["Conversion Factor"] = [conv_f]
-		self.latest_collection_params["Conversion Factor Error"] = [conv_err]
+		self.latest_collection_params["TrialNumber"] = [self.trial_num_entry.get()]
+		self.latest_collection_params["Lock-inSensitivity"] = [lock_in_setting]
+		self.latest_collection_params["ConversionFactor"] = [conv_f]
+		self.latest_collection_params["ConversionFactorError"] = [conv_err]
 
 		self.latest_collection_params.to_csv(self.param_filepath, mode='a', index=False, header=False)
 		self.collection_params = pd.concat([self.collection_params, self.latest_collection_params]).reset_index(drop = True)
@@ -600,6 +489,12 @@ class Collection_Parameters(tk.Frame):
 		self.err_msg_disp(isAcceptable)
 		return isAcceptable
 	
+	def validate_d2wavelen(self):
+		val = self.laser_wavelen_entry.get()
+		isAcceptable = util.entry_exists_is_number(val)
+		self.err_msg_disp(isAcceptable)
+		return isAcceptable
+	
 	def validate_lockin(self):
 		val = self.lockin_sensitivity_entry.get()
 		isAcceptable = util.entry_exists_is_number(val)
@@ -634,20 +529,21 @@ class Calibration_Parameters(tk.Frame):
 		self.latest_cal_params = pd.DataFrame({
 			"Date": [],
 			"Cell": [],
-			"Oven Temperature": [],
-			"Laser Wavelength": [],
-			"Optical Length": [],
-			"Laser Power": [], 
-			"Laser Temperature": [], 
-			"Lock-in Sensitivity": [],
-			"Dial Rotation": [], 
-			"Physical Rotation": [],
-			"Initial Calibration Value": [],
-			"Initial Calibration Error": [],
-			"Final Calibration": [],
-			"Final Calibration Error": [],
-			"Calibration Factor":[],
-			"Calibration Factor Error": []
+			"OvenTemperature": [],
+			"LaserWavelength": [],
+			"D2Resonance":[],
+			"OpticalLength": [],
+			"LaserPower": [], 
+			"LaserTemperature": [], 
+			"Lock-inSensitivity": [],
+			"DialRotation": [], 
+			"PhysicalRotation": [],
+			"InitialCalibrationValue": [],
+			"InitialCalibrationError": [],
+			"FinalCalibration": [],
+			"FinalCalibrationError": [],
+			"CalibrationFactor":[],
+			"CalibrationFactorError": []
 		})
 
 		self.calibration_header = tk.Label(self, text="Calibration", font=("Ariel", 15))
@@ -659,6 +555,8 @@ class Calibration_Parameters(tk.Frame):
 		self.laser_power_lbl = tk.Label(self, text="Laser Power (LD1 value):", font=("Ariel", 12)) #laser power on readout
 		self.laser_temp_lbl = tk.Label(self, text="Laser Temperature (ACT T value):", font=("Ariel", 12)) #laser temp on readout
 		self.laser_wavelen_lbl = tk.Label(self, text="Laser Wavelength (cm):", font=("Ariel", 12)) #laser wavelength, in cm
+		self.D2_res_lbl = tk.Label(self, text="D2 Resonance Wavelength (cm):", font=("Ariel", 12)) #D2 resonance wavelength, in cm
+
 		
 		self.spacer_lbl = tk.Label(self, text="\nUPDATE THE VALUES BELOW BETWEEN CALIBRATION AND COLLECTION \n", font=("Ariel", 12))
 		self.lockin_sensitivity_lbl = tk.Label(self, text="Lock-in Sensitivity (Volts):", font=("Ariel", 12)) #in VOLTS. THIS IS VERY IMPORTANT
@@ -670,6 +568,8 @@ class Calibration_Parameters(tk.Frame):
 		self.laser_power_entry = tk.Entry(self, validatecommand=self.validate_laserpower, validate="focusout") #laser power on readout
 		self.laser_temp_entry = tk.Entry(self, validatecommand=self.validate_lasertemp, validate="focusout") #laser temp on readout
 		self.laser_wavelen_entry = tk.Entry(self, validatecommand=self.validate_wavelen, validate="focusout") #laser wavelength, in cm
+		self.D2_res_entry = tk.Entry(self, validatecommand=self.validate_d2) #D2 resonance wavelength, in cm
+
 		self.lockin_sensitivity_entry = tk.Entry(self, validatecommand=self.validate_lockin, validate="focusout") #in VOLTS. THIS IS VERY IMPORTANT
 		self.physical_rotation_entry = tk.Entry(self, validatecommand=self.validate_rotation, validate="focusout") #the angle (in degrees) rotated on the dial. Note that 1 degree = 1 rotations of the small dial
 
@@ -699,10 +599,12 @@ class Calibration_Parameters(tk.Frame):
 		self.laser_power_lbl.grid(row=4, column=0, columnspan=2, sticky=tk.W, padx=10)
 		self.laser_temp_lbl.grid(row=5, column=0, columnspan=2, sticky=tk.W, padx=10)
 		self.laser_wavelen_lbl.grid(row=6, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.D2_res_lbl.grid(row=7, column=0, columnspan=2, sticky=tk.W, padx=10)
+
 		##these parameters will be different between caliration and collection
-		self.spacer_lbl.grid(row=7, column=0, columnspan=4)
-		self.lockin_sensitivity_lbl.grid(row=8, column=0, columnspan=2, sticky=tk.W, padx=10)
-		self.physical_rotation_lbl.grid(row=9, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.spacer_lbl.grid(row=8, column=0, columnspan=4)
+		self.lockin_sensitivity_lbl.grid(row=9, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.physical_rotation_lbl.grid(row=10, column=0, columnspan=2, sticky=tk.W, padx=10)
 		#parameter entry (right)
 		self.cell_entry.grid(row=1, column=2, columnspan=2, padx=10)
 		self.oven_temp_entry.grid(row=2, column=2, columnspan=2, padx=10)
@@ -710,20 +612,21 @@ class Calibration_Parameters(tk.Frame):
 		self.laser_power_entry.grid(row=4, column=2, columnspan=2, padx=10)
 		self.laser_temp_entry.grid(row=5, column=2, columnspan=2, padx=10)
 		self.laser_wavelen_entry.grid(row=6, column=2, columnspan=2, padx=10)
+		self.D2_res_entry.grid(row=7, column=2, columnspan=2, padx=10)
 		##these parameters will be different between caliration and collection
-		self.lockin_sensitivity_entry.grid(row=8, column=2, columnspan=2, padx=10)
-		self.physical_rotation_entry.grid(row=9, column=2, columnspan=2, padx=10)
+		self.lockin_sensitivity_entry.grid(row=9, column=2, columnspan=2, padx=10)
+		self.physical_rotation_entry.grid(row=10, column=2, columnspan=2, padx=10)
 
 		#user feedback - show errors for incorrect entries here
-		self.error_display_lbl.grid(row=10, column=0, columnspan=4, padx=10)
+		self.error_display_lbl.grid(row=11, column=0, columnspan=4, padx=10)
 
 		#collect calibration vals
-		self.collect_cal_btn.grid(row=11, column=0, columnspan=2, sticky=tk.W, padx=10)
-		self.initial_cal_val_disp.grid(row=11, column=2, padx=10)
-		self.final_cal_val_disp.grid(row=11, column=3, padx=10)
+		self.collect_cal_btn.grid(row=12, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.initial_cal_val_disp.grid(row=12, column=2, padx=10)
+		self.final_cal_val_disp.grid(row=12, column=3, padx=10)
 		#save all the things to a file
-		self.save_params_button.grid(row=12, column=0, columnspan=2, sticky=tk.W, padx=10)
-		self.display_cal_value.grid(row=12, column=2, columnspan=2, padx=10)
+		self.save_params_button.grid(row=13, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.display_cal_value.grid(row=13, column=2, columnspan=2, padx=10)
 
 
 
@@ -777,6 +680,12 @@ class Calibration_Parameters(tk.Frame):
 	
 	def validate_wavelen(self):
 		val = self.laser_wavelen_entry.get()
+		isAcceptable = util.entry_exists_is_number(val)
+		self.err_msg_disp(isAcceptable)
+		return isAcceptable
+	
+	def validate_d2(self):
+		val = self.D2_res_entry.get()
 		isAcceptable = util.entry_exists_is_number(val)
 		self.err_msg_disp(isAcceptable)
 		return isAcceptable
@@ -842,20 +751,21 @@ class Calibration_Parameters(tk.Frame):
 		new_row = pd.DataFrame({
 			"Date": [self.parent.current_date],
 			"Cell": [self.cell_entry.get()],
-			"Oven Temperature": [self.oven_temp_entry.get()],
-			"Laser Wavelength": [self.laser_wavelen_entry.get()],
-			"Optical Length": [self.optical_len_entry.get()],
-			"Laser Power": [self.laser_power_entry.get()], 
-			"Laser Temperature": [self.laser_temp_entry.get()], 
-			"Lock-in Sensitivity": [lockin_sens],
-			"Dial Rotation": [dial_angle], 
-			"Physical Rotation": [cal_angle],
-			"Initial Calibration Value": [initcal],
-			"Initial Calibration Error": [initcal_err],
-			"Final Calibration": [fincal],
-			"Final Calibration Error": [fincal_err],
-			"Calibration Factor": [cal_factor],
-			"Calibration Factor Error": [cal_factor_error]
+			"OvenTemperature": [self.oven_temp_entry.get()],
+			"LaserWavelength": [self.laser_wavelen_entry.get()],
+			"D2Resonance":[self.D2_res_entry.get()],
+			"OpticalLength": [self.optical_len_entry.get()],
+			"LaserPower": [self.laser_power_entry.get()], 
+			"LaserTemperature": [self.laser_temp_entry.get()], 
+			"Lock-inSensitivity": [lockin_sens],
+			"DialRotation": [dial_angle], 
+			"PhysicalRotation": [cal_angle],
+			"InitialCalibrationValue": [initcal],
+			"InitialCalibrationError": [initcal_err],
+			"FinalCalibration": [fincal],
+			"FinalCalibrationError": [fincal_err],
+			"CalibrationFactor": [cal_factor],
+			"CalibrationFactorError": [cal_factor_error]
 			})
 		new_row.to_csv(self.calibration_filepath, mode='a', index=False, header=False)
 		self.cal_params = pd.concat([self.cal_params, new_row]).reset_index(drop = True)
