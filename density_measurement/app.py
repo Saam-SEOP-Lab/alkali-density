@@ -261,7 +261,7 @@ class Collection_Parameters(tk.Frame):
 				"LaserTemperature": [], 
 				"Lock-inSensitivity": [],
 				"CalibrationFactor":[],
-				"CalibrationFactor Error": [], 
+				"CalibrationFactorError": [], 
 				"ConversionFactor" : [],
 				"ConversionFactorError" : []
 			})
