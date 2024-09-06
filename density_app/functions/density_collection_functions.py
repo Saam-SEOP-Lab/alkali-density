@@ -28,6 +28,10 @@ def collectCurrent(resource):
         current = input(prompt)
         return current
 
+def list_instruments():
+    rm = visa.ResourceManager()
+    inst = rm.list_resources()
+    return inst
 
 def connectToScope(scope_address):
     rm = visa.ResourceManager()

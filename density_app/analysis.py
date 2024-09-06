@@ -1,9 +1,10 @@
 #public libraries
 import tkinter as tk
+from tkinter import ttk
 from tkinter import filedialog
 from tkinter import scrolledtext
 import pandas as pd
-from density_calculations.density_calc import convertItoB_mainroom, convertVtoRot, get_info_from_fname, get_my_data_no_file, convert_to_cm_if_needed
+from functions.density_calc import convertItoB_mainroom, convertVtoRot, get_info_from_fname, get_my_data_no_file, convert_to_cm_if_needed
 import numpy as np
 import pandas as pd
 
@@ -20,9 +21,9 @@ import pandas as pd
 ## 5. plot mag field vs rotation and display best fit line
 ## 6. determine the density and error in density from the best fit line slope
 
-class App(tk.Tk):
-	def __init__(self):
-		super().__init__()
+class App(ttk.Frame):
+	def __init__(self, master=None):
+		super().__init__(master)
 		
 
 		self.final_data = pd.DataFrame({'Date': [],
@@ -34,9 +35,9 @@ class App(tk.Tk):
 		
 
         # Title, icon, size
-		self.title("Alkali Density Analysis")
-		self.iconbitmap('images/codemy.ico')
-		self.geometry('1200x900')
+		#self.title("Alkali Density Analysis")
+		#self.iconbitmap('images/codemy.ico')
+		#self.geometry('1200x900')
 
 		#add inputs for verdet constant and glass_depth
 		self.verdet = 1
@@ -142,7 +143,8 @@ class App(tk.Tk):
 
 	def choose_file(self):
 		file = filedialog.askopenfilename(filetypes=[('CSV files', '*.csv')])
-		if file is not None:
+		
+		if ((file is not None) and (file!='')):
 			self.raw_data = pd.read_csv(file)
 			rf = str(file).split("/")
 			self.raw_filename = (rf.pop()).split(".")[0] #get last element of array, also that is removed from rf
@@ -151,6 +153,9 @@ class App(tk.Tk):
 			self.get_experiment_params()
 			self.createProcessedFile()
 			self.analyze_me()
+		
+		#else: 
+		#display some sort of error!!!
 	
 	def analyze_me(self):
 		#get the data from the parent (assumes that we just created a processed file)

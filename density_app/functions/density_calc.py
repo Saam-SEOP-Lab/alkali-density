@@ -3,7 +3,7 @@ from typing import Type
 from math import log10
 import pandas as pd
 from scipy.optimize import curve_fit
-from density_calculations.utilities import formatter
+from .utilities import formatter
 
 
 ######################### CONSTANTS #########################
@@ -196,6 +196,14 @@ def linear_fit_data(x_vals, y_vals):
     param, param_cov = curve_fit(line, x_vals, y_vals)
     return param, param_cov
 
+#returns a linear fit for the specified data
+def linear_fit_data_with_error(x_vals, y_vals, errors):
+    # line for fitting
+    def line(x, m, b):
+        return x*m+b
+    param, param_cov = curve_fit(line, x_vals, y_vals, sigma=errors, absolute_sigma=True)
+    return param, param_cov
+
 #calculate average error from errors on individual measurements
 def get_average_error(error_vals):
     avg_err = 0
@@ -214,16 +222,26 @@ def get_error_from_covar(p_cov):
 # [date, cell, temp, density, error]
 def get_my_data(d1_res, d2_res, fp, wavelength, optical_path):
 
+    # NOW USES ERROR IN LINE FIT
+    # REPORTS ERROR FROM LINE FIT AS DENSITY ERROR
+
     collected_date, cell, tmp = get_info_from_fname(fp)
     b_field, rot, r_err_MAE, r_err_SDT = get_processed_data_from_csv(fp)
-    fit_params, cov = linear_fit_data(b_field, rot)
+    fit_params, cov = linear_fit_data_with_error(b_field, rot,r_err_SDT)
     slope = fit_params[0]
-    mae_avg_err = get_average_error(r_err_MAE)
-    std_avg_err = get_average_error(r_err_SDT)
-    cov_err = get_error_from_covar(cov)
-    max_err = np.array([mae_avg_err, std_avg_err, cov_err]).max()
+    #mae_avg_err = get_average_error(r_err_MAE)
+    #std_avg_err = get_average_error(r_err_SDT)
+    
+    den_error = get_error_from_covar(cov)
+    ## ERROR NEEDS TO INCLUDE ERROR IN DETUNING - USE CODE BELOW
+    # qd_slope = (cov[0][0]/slope)**2
+    # qd_detuning = (error_in_detuning/(abs(d2_res-wavelength)))**2 
+    # den_error = np.sqrt(sq_slope+qd_detuning)
+
+
+    #max_err = np.array([mae_avg_err, std_avg_err, cov_err]).max()
     density = formatter(rb_density(d1_res, d2_res, slope, optical_path, wavelength),2)
-    density_error = formatter(rb_density(d1_res, d2_res, max_err, optical_path, wavelength),2)
+    density_error = formatter(rb_density(d1_res, d2_res, den_error, optical_path, wavelength),2)
     killian_val = formatter(killian_density(tmp),2)
     #create my data frame
     output = pd.DataFrame({'Date': [collected_date],

@@ -2,6 +2,7 @@
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import scrolledtext
+from tkinter import ttk
 import os
 import pandas as pd
 from datetime import datetime
@@ -15,9 +16,12 @@ import functions.density_collection_functions as dcf
 
 
 
-class App(tk.Tk):
-	def __init__(self):
-		super().__init__()
+#class App(tk.Tk):
+class App(ttk.Frame):
+	def __init__(self, master=None):
+		super().__init__(master)
+
+		self.run_in_testmode = False
 
 		#need to start these out with None, so I can close the program correctly later
 		self.raw_data_file = None
@@ -32,22 +36,31 @@ class App(tk.Tk):
 			pass # if directory already exists
 
 		# Title, icon, size
-		self.title("Alkali Density Measurement")
-		self.iconbitmap('images/codemy.ico')
-		self.geometry('1200x900')
+		#self.title("Alkali Density Measurement")
+		#self.iconbitmap('images/codemy.ico')
+		#self.geometry('1200x900')
 
 		#this should connect to the oscilloscope
-		self.connection_setup()
+		#self.connection_setup()
 
 		# Create some widgets
-		self.header_lbl = tk.Label(self, text="Density Measurement", font=("Ariel", 20))
-		self.header_lbl.grid(row = 0, column = 0, columnspan=2, padx = 10, pady=10)		
+		#self.header_lbl = tk.Label(self, text="Density Measurement", font=("Ariel", 20))
+		#self.header_lbl.grid(row = 0, column = 0, columnspan=2, padx = 10, pady=10)	
+
+		#I need a button to check for connections because I need to be able to run this without
+		# the scope attached
+		self.check_for_instruments_btn = tk.Button(self, text="Check for Connected Instruments", command=self.connection_setup)
+		self.check_for_instruments_btn.grid(row=0, column=0, padx=10, pady=10)	
+		#show what we're connected to
+		self.is_connected_lbl = tk.Label(self, text="No Scope Connected")
+		self.is_connected_lbl.grid(row=0, column=1, padx=10, pady=10)
+
 
 		self.reset_btn = tk.Button(self, text="Reset for new trial", command=self.reset_for_new_collection)
 		self.reset_btn.grid(row=0, column=2, padx=10, pady=10)
 	
-		self.quit_button = tk.Button(self, text = "Close", command=self.close)
-		self.quit_button.grid(row = 0, column = 3, padx = 10, pady=10)
+		#self.quit_button = tk.Button(self, text = "Close", command=self.close)
+		#self.quit_button.grid(row = 0, column = 3, padx = 10, pady=10)
 
 		self.base_folder_select_btn = tk.Button(self, text="Select Save Location", command=self.chooseBaseFolder)
 		self.base_folder_select_lbl = tk.Label(self, text="Data will be saved to "+self.raw_data_folder, font=('Ariel',14))
@@ -62,13 +75,24 @@ class App(tk.Tk):
 
 
 	def connection_setup(self):
-		#some info for collecting data
-		self.time_constant = 1
-		self.num_points = 10
-		self.scope_addr = 'USB0::0x0699::0x0368::C041014::INSTR'
-		#now connect to the scope (comment out two lines below when testing w/o scope)
-		self.my_scope = dcf.connectToScope(self.scope_addr)
-		dcf.setUpScopeForDataCol(self.my_scope)
+
+		if(self.run_in_testmode):
+			self.is_connected_lbl["text"] = "In test mode"
+
+		else: 
+			#some info for collecting data
+			self.time_constant = 1
+			self.num_points = 10
+			self.scope_addr = 'USB0::0x0699::0x0368::C041014::INSTR'
+			try: 
+				#now connect to the scope (comment out two lines below when testing w/o scope)
+				self.my_scope = dcf.connectToScope(self.scope_addr)
+				dcf.setUpScopeForDataCol(self.my_scope)
+				self.is_connected_lbl["text"] = "Connected to "+ self.scope_addr
+			except: 
+				self.is_connected_lbl["text"] = "No instruments available"
+
+
 	
 
 	def save_data(self):
@@ -277,12 +301,12 @@ class Collection_Parameters(tk.Frame):
 		self.optical_len_lbl = tk.Label(self, text="Optical Path Length (cm):", font=("Ariel", 12)) #optical length, in cm
 		self.laser_power_lbl = tk.Label(self, text="Laser Power (LD1 value):", font=("Ariel", 12)) #laser power on readout
 		self.laser_temp_lbl = tk.Label(self, text="Laser Temperature (ACT T value):", font=("Ariel", 12)) #laser temp on readout
-		self.laser_wavelen_lbl = tk.Label(self, text="Laser Wavelength (cm):", font=("Ariel", 12)) #laser wavelength, in cm
+		self.laser_wavelen_lbl = tk.Label(self, text="Probe Laser Wavelength (cm):", font=("Ariel", 12)) #laser wavelength, in cm
 		self.D2_wavelen_lbl = tk.Label(self, text="D2 Resonance Wavelength (cm):", font=("Ariel", 12)) #D2 wavelength, in cm
 
 		
-		self.spacer_lbl = tk.Label(self, text="\nUPDATE THE VALUES BELOW BETWEEN CALIBRATION AND COLLECTION\n", font=("Ariel", 12))
-		self.lockin_sensitivity_lbl = tk.Label(self, text="Lock-in Sensitivity (Volts):", font=("Ariel", 12)) #in VOLTS. THIS IS VERY IMPORTANT
+		self.spacer_lbl = tk.Label(self, text="\nLOCK-IN SENSITIVITY FOR CALIBRATION AND COLLECTION WILL BE DIFFERENT\n", font=("Ariel", 12))
+		self.lockin_sensitivity_lbl = tk.Label(self, text="Collection Lock-in Sensitivity (Volts):", font=("Ariel", 12)) #in VOLTS. THIS IS VERY IMPORTANT
 		self.trial_num_lbl = tk.Label(self, text="Trial Number:", font=("Ariel", 12))		
 
 		self.cell_entry = tk.Entry(self, validatecommand=self.validate_cellname, validate="focusout") #optical length, in cm
@@ -554,12 +578,12 @@ class Calibration_Parameters(tk.Frame):
 		self.optical_len_lbl = tk.Label(self, text="Optical Path Length (cm):", font=("Ariel", 12)) #optical length, in cm
 		self.laser_power_lbl = tk.Label(self, text="Laser Power (LD1 value):", font=("Ariel", 12)) #laser power on readout
 		self.laser_temp_lbl = tk.Label(self, text="Laser Temperature (ACT T value):", font=("Ariel", 12)) #laser temp on readout
-		self.laser_wavelen_lbl = tk.Label(self, text="Laser Wavelength (cm):", font=("Ariel", 12)) #laser wavelength, in cm
+		self.laser_wavelen_lbl = tk.Label(self, text="Probe Laser Wavelength (cm):", font=("Ariel", 12)) #laser wavelength, in cm
 		self.D2_res_lbl = tk.Label(self, text="D2 Resonance Wavelength (cm):", font=("Ariel", 12)) #D2 resonance wavelength, in cm
 
 		
-		self.spacer_lbl = tk.Label(self, text="\nUPDATE THE VALUES BELOW BETWEEN CALIBRATION AND COLLECTION \n", font=("Ariel", 12))
-		self.lockin_sensitivity_lbl = tk.Label(self, text="Lock-in Sensitivity (Volts):", font=("Ariel", 12)) #in VOLTS. THIS IS VERY IMPORTANT
+		self.spacer_lbl = tk.Label(self, text="\nLOCK-IN SENSITIVITY FOR CALIBRATION AND COLLECTION WILL BE DIFFERENT\n", font=("Ariel", 12))
+		self.lockin_sensitivity_lbl = tk.Label(self, text="Calibration Lock-in Sensitivity (Volts):", font=("Ariel", 12)) #in VOLTS. THIS IS VERY IMPORTANT
 		self.physical_rotation_lbl = tk.Label(self, text="Calibration Physical Rotation (Degrees):", font=("Ariel", 12)) #the angle (in degrees) rotated on the dial. Note that 1 degree = 1 rotations of the small dial
 
 		self.cell_entry = tk.Entry(self, validatecommand=self.validate_cellname, validate="focusout") #name of cell being used
