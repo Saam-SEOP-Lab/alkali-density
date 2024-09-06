@@ -262,17 +262,17 @@ def get_my_data_no_file(date, cellname, temp, data, d1_res, d2_res, wavelength, 
     tmp = temp
     b_field = data["Magnetic Field (Gauss)"]
     rot = data["Rotation (Radians)"]
-    r_err_MAE = data["Rotation Mean Absolute Error"]
+    #r_err_MAE = data["Rotation Mean Absolute Error"]
     r_err_STD = data["Rotation Standard Deviation"]
 
-    fit_params, cov = linear_fit_data(b_field, rot)
+    fit_params, cov = linear_fit_data_with_error(b_field, rot,r_err_STD)
     slope = fit_params[0]
-    mae_avg_err = get_average_error(r_err_MAE)
-    std_avg_err = get_average_error(r_err_STD)
+    #mae_avg_err = get_average_error(r_err_MAE)
+    #std_avg_err = get_average_error(r_err_STD)
     cov_err = get_error_from_covar(cov)
-    max_err = np.array([mae_avg_err, std_avg_err, cov_err]).max()
+    #max_err = np.array([mae_avg_err, std_avg_err, cov_err]).max()
     density = formatter(rb_density(d1_res, d2_res, slope, optical_path, wavelength),2)
-    density_error = formatter(rb_density(d1_res, d2_res, max_err, optical_path, wavelength),2)
+    density_error = formatter(rb_density(d1_res, d2_res, cov_err, optical_path, wavelength),2)
     killian_val = formatter(killian_density(tmp),2)
     #create my data frame
     output = pd.DataFrame({'Date': [collected_date],
