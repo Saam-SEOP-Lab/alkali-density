@@ -31,7 +31,12 @@ class App(ttk.Frame):
                         'Temperature':[],
                         'Density':[],
                         'Density Error':[], 
-                        'Killian Value':[] })
+                        'Killian Value':[],
+						'D1 Resonance': [],
+						'D2 Resonance': [],
+						'Probe Beam': [] })
+		
+		self.process_counter = 0
 		
 
         # Title, icon, size
@@ -60,6 +65,8 @@ class App(ttk.Frame):
 		self.analysis_section.grid(row=5, column=0, padx=10)
 		self.analysis_display = scrolledtext.ScrolledText(self, wrap = tk.WORD, width=150, height=10)
 		self.analysis_display.grid(row=6,column=0,padx=10)
+		#self.analysis_display.insert(tk.END, self.final_data.columns)
+
 
 
 	#we have been taking two data points at 0 field because of the current switch
@@ -111,6 +118,8 @@ class App(ttk.Frame):
 			"Rotation Standard Deviation": rotation_std
 		})
 		self.data_display.insert(tk.END, self.processed_data)
+		self.data_display.insert(tk.END, '\n')
+
 		self.processed_data.to_csv(self.processed_filepath)
 
 
@@ -134,12 +143,26 @@ class App(ttk.Frame):
 		all_params = pd.read_csv(self.param_filepath)
 		#find the row that matches the trial number in the filename selected 
 		# filter rows based on list values
+		print("TRIAL NUMBER IS", self.trial_num)
 		experiment_params = all_params.loc[all_params['TrialNumber'] == int(self.trial_num)].reset_index()
 		self.conversion_factor = float(experiment_params['ConversionFactor'][0])
 		self.conversion_factor_err = float(experiment_params['ConversionFactorError'][0])
 		self.optical_length = float(experiment_params['OpticalLength'][0])
 		self.probe_beam = convert_to_cm_if_needed(float(experiment_params['LaserWavelength'][0]))
-		self.D2resonance = convert_to_cm_if_needed(float(experiment_params['D2Resonance'][0]))
+
+		#try to get D1 from params file but if there is no such field use default
+		try: 
+			self.D1resonance = convert_to_cm_if_needed(float(experiment_params['D1Resonance'][0]))
+		except: 
+			self.D1resonance = 7.94768E-5 #7.94768E-5 #7.948E-5 #default D1 resonance in cm
+		
+		#try to get D1 from params file but if there is no such field use default
+		try: 
+			self.D2resonance = convert_to_cm_if_needed(float(experiment_params['D2Resonance'][0]))
+		except: 
+			self.D2resonance = 7.800334E-5 #default D2 resonance in cm
+
+
 
 	def choose_file(self):
 		file = filedialog.askopenfilename(filetypes=[('CSV files', '*.csv')])
@@ -160,16 +183,23 @@ class App(ttk.Frame):
 	def analyze_me(self):
 		#get the data from the parent (assumes that we just created a processed file)
 		#get the date, cellname, and temp
-		print(self.processed_filename)
+		#uses default D1 = 7.948E-5 so that I can reprocess old files if needed
+		#uses default D2 = ??E-5 so that I can reprocess old files if needed
 		date, cellname, temp = get_info_from_fname(self.processed_filename)
 		olen = self.optical_length
 		wl = self.probe_beam 
-		D1 = 7.948E-5
-		D2 = 7.80032e-5 #this will be included in the experimental params later for now hard code
+		D1 = self.D1resonance
+		D2 = self.D2resonance
 		data = self.processed_data
 		self.result = get_my_data_no_file(date, cellname, temp, data, D1, D2, wl, olen)
-		print(self.result)
-		self.analysis_display.insert(tk.END, self.result)
+		if self.process_counter == 0:
+			self.analysis_display.insert(tk.END, self.result.to_string(header=True))
+			self.analysis_display.insert(tk.END, '\n')
+		else: 	
+			self.analysis_display.insert(tk.END, self.result.to_string(header=False))
+			self.analysis_display.insert(tk.END, '\n')
+
+		self.process_counter=self.process_counter+1
 
 
 	

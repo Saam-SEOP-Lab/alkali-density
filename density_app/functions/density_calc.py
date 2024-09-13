@@ -240,16 +240,19 @@ def get_my_data(d1_res, d2_res, fp, wavelength, optical_path):
 
 
     #max_err = np.array([mae_avg_err, std_avg_err, cov_err]).max()
-    density = formatter(rb_density(d1_res, d2_res, slope, optical_path, wavelength),2)
-    density_error = formatter(rb_density(d1_res, d2_res, den_error, optical_path, wavelength),2)
-    killian_val = formatter(killian_density(tmp),2)
+    density = formatter(rb_density(d1_res, d2_res, slope, optical_path, wavelength),4)
+    density_error = formatter(rb_density(d1_res, d2_res, den_error, optical_path, wavelength),4)
+    killian_val = formatter(killian_density(tmp),4)
     #create my data frame
     output = pd.DataFrame({'Date': [collected_date],
                         'Cell Name': [cell],
                         'Temperature':[tmp],
                         'Density':[density],
                         'Density Error':[density_error], 
-                        'Killian Value':[killian_val] })
+                        'Killian Value':[killian_val],
+                        'D1 Resonance':[formatter(d1_res,5)],
+                        'D2 Resonance':[formatter(d2_res,5)],
+                        'Probe Beam':[formatter(wavelength, 5)] })
     return output
 
 def get_my_data_no_file(date, cellname, temp, data, d1_res, d2_res, wavelength, optical_path):
@@ -271,16 +274,19 @@ def get_my_data_no_file(date, cellname, temp, data, d1_res, d2_res, wavelength, 
     #std_avg_err = get_average_error(r_err_STD)
     cov_err = get_error_from_covar(cov)
     #max_err = np.array([mae_avg_err, std_avg_err, cov_err]).max()
-    density = formatter(rb_density(d1_res, d2_res, slope, optical_path, wavelength),2)
-    density_error = formatter(rb_density(d1_res, d2_res, cov_err, optical_path, wavelength),2)
-    killian_val = formatter(killian_density(tmp),2)
+    density = formatter(rb_density(d1_res, d2_res, slope, optical_path, wavelength),4)
+    density_error = formatter(rb_density(d1_res, d2_res, cov_err, optical_path, wavelength),4)
+    killian_val = formatter(killian_density(tmp),4)
     #create my data frame
     output = pd.DataFrame({'Date': [collected_date],
                         'Cell Name': [cell],
                         'Temperature':[tmp],
                         'Density':[density],
                         'Density Error':[density_error], 
-                        'Killian Value':[killian_val] })
+                        'Killian Value':[killian_val],
+                        'D1 Resonance':[formatter(d1_res,5)],
+                        'D2 Resonance':[formatter(d2_res,5)],
+                        'Probe Beam':[formatter(wavelength, 5)] })
     return output
 
 #sometimes the wavelengths get entered in nm not cm

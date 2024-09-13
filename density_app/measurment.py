@@ -28,6 +28,7 @@ class App(ttk.Frame):
 		self.my_scope = None
 		self.current_date = datetime.today().strftime('%Y-%m-%d')
 
+
 		#if it does not already exist, make the folder for the day's data collection
 		self.raw_data_folder = 'Data/Density/'+self.current_date+'/'
 		try: 
@@ -47,17 +48,19 @@ class App(ttk.Frame):
 		#self.header_lbl = tk.Label(self, text="Density Measurement", font=("Ariel", 20))
 		#self.header_lbl.grid(row = 0, column = 0, columnspan=2, padx = 10, pady=10)	
 
+		xpad = 10
+		ypad = 5
 		#I need a button to check for connections because I need to be able to run this without
 		# the scope attached
 		self.check_for_instruments_btn = tk.Button(self, text="Check for Connected Instruments", command=self.connection_setup)
-		self.check_for_instruments_btn.grid(row=0, column=0, padx=10, pady=10)	
+		self.check_for_instruments_btn.grid(row=0, column=0, padx=10, pady=ypad)	
 		#show what we're connected to
 		self.is_connected_lbl = tk.Label(self, text="No Scope Connected")
-		self.is_connected_lbl.grid(row=0, column=1, padx=10, pady=10)
+		self.is_connected_lbl.grid(row=0, column=1, padx=10, pady=ypad)
 
 
 		self.reset_btn = tk.Button(self, text="Reset for new trial", command=self.reset_for_new_collection)
-		self.reset_btn.grid(row=0, column=2, padx=10, pady=10)
+		self.reset_btn.grid(row=0, column=2, padx=10, pady=ypad)
 	
 		#self.quit_button = tk.Button(self, text = "Close", command=self.close)
 		#self.quit_button.grid(row = 0, column = 3, padx = 10, pady=10)
@@ -65,8 +68,8 @@ class App(ttk.Frame):
 		self.base_folder_select_btn = tk.Button(self, text="Select Save Location", command=self.chooseBaseFolder)
 		self.base_folder_select_lbl = tk.Label(self, text="Data will be saved to "+self.raw_data_folder, font=('Ariel',14))
 
-		self.base_folder_select_btn.grid(row=1, column=0, padx = 10, pady=10)
-		self.base_folder_select_lbl.grid(row=1, column=1, columnspan=3, padx = 10, pady=10)
+		self.base_folder_select_btn.grid(row=1, column=0, padx = 10, pady=ypad)
+		self.base_folder_select_lbl.grid(row=1, column=1, columnspan=3, padx = 10, pady=ypad)
 
 		# Create a frame outside this function
 		self.calibration_params_frame = Calibration_Parameters(self)
@@ -81,8 +84,6 @@ class App(ttk.Frame):
 
 		else: 
 			#some info for collecting data
-			self.time_constant = 1
-			self.num_points = 10
 			self.scope_addr = 'USB0::0x0699::0x0368::C041014::INSTR'
 			try: 
 				#now connect to the scope (comment out two lines below when testing w/o scope)
@@ -92,8 +93,6 @@ class App(ttk.Frame):
 			except: 
 				self.is_connected_lbl["text"] = "No instruments available"
 
-
-	
 
 	def save_data(self):
 		self.raw_data_file.close()
@@ -138,7 +137,7 @@ class Data_Collection(tk.Frame):
 		super().__init__(parent)
 		self.parent = parent
 		#put this on the page
-		self.grid(row = 20, column=0, columnspan=4, padx=10, pady=10)
+		self.grid(row = 20, column=0, columnspan=4, padx=10, pady=5)
 
 		#prep the fields for creating a data file
 		self.data_folder = self.parent.raw_data_folder
@@ -151,14 +150,31 @@ class Data_Collection(tk.Frame):
 			"Voltage Standard Deviation": []
 		})
 
+		ypad = 1
+
 		#widgets 
 		self.start_data_collection_button = tk.Button(self, text="Start Data Collection", command=self.collection_setup)	
-		self.start_data_collection_button.grid(row =0, column = 0, padx = 10)	
+		self.start_data_collection_button.grid(row =1, column = 3, columnspan=1 ,padx = 10, pady=ypad)	
 		self.raw_data_loc_lbl = tk.Label(self, text="", font=("Ariel", 12))
-		self.raw_data_loc_lbl.grid(row=0, column=2, columnspan=2, padx=10)
+		self.raw_data_loc_lbl.grid(row=2, column=0, columnspan=2, padx=10, pady=ypad)
+
+		self.num_points_lbl = tk.Label(self, text="# voltages to average: ", font=('Ariel',12))
+		self.num_points_entry = tk.Entry(self)
+		self.num_points_lbl.grid(row=0, column=0, padx = 10, pady=ypad)
+		self.num_points_entry.grid(row=1, column=0, padx = 10, pady=ypad)
+		
+		self.time_btwn_pts_lbl = tk.Label(self, text="Time between values collected: ", font=('Ariel',12))
+		self.time_btwn_pts_entry = tk.Entry(self)
+		self.time_btwn_pts_lbl.grid(row=0, column=1, padx = 10, pady=ypad)
+		self.time_btwn_pts_entry.grid(row=1, column=1, padx = 10, pady=ypad)
+		
+		self.time_constant_lbl = tk.Label(self, text="Lock-in time constant (s): ", font=('Ariel',12))
+		self.time_constant_entry = tk.Entry(self)
+		self.time_constant_lbl.grid(row=0, column=2, padx = 10, pady=ypad)
+		self.time_constant_entry.grid(row=1, column=2, padx = 10, pady=ypad)
 
 		# label for user entry field
-		self.enter_current_label = tk.Label(self, text="Enter Current Value (amps)", font=("Ariel", 14))
+		self.enter_current_label = tk.Label(self, text="Enter Current Value (amps):", font=("Ariel", 14))
 		# user entry fields for current
 		self.enter_current = tk.Entry(self)
 		#self.saveCurrentCallable = partial(self.save_text_and_clear, self.enter_current)
@@ -168,11 +184,11 @@ class Data_Collection(tk.Frame):
 
 		self.data_display = scrolledtext.ScrolledText(self, wrap = tk.WORD, width=100, height=8)
 		
-		self.enter_current_label.grid(row=2, column=0, columnspan=2, padx=10)
-		self.enter_current.grid(row=2, column=2, padx=10)
-		self.submit_button.grid(row=2, column=3, padx=10)
-		self.error_display_lbl.grid(row=3, column=0, columnspan=4, padx=10)
-		self.data_display.grid(row=4, column=0, columnspan=4)
+		self.enter_current_label.grid(row=3, column=0, columnspan=1, padx=10, pady=ypad)
+		self.enter_current.grid(row=3, column=1, padx=10, pady=ypad)
+		self.submit_button.grid(row=3, column=2, columnspan=2, padx=10, pady=ypad)
+		self.error_display_lbl.grid(row=4, column=0, columnspan=4, padx=10, pady=ypad)
+		self.data_display.grid(row=5, column=0, columnspan=4, pady=ypad)
 
 	def validate_current(self):
 		val = self.enter_current.get()
@@ -192,8 +208,23 @@ class Data_Collection(tk.Frame):
 
 	def collection_setup(self):
 		#set up some important parameters
-		self.time_constant = 1
-		self.num_points = 10
+		#self.time_constant = 1
+		#try to get the user entered collection values 
+		try: 
+			self.num_points = self.num_points_entry.get()
+		except: 
+			self.num_points = 20 #default value
+		
+		try: 
+			self.time_btwn_pts = self.time_btwn_pts_entry.get()
+		except: 
+			self.time_btwn_pts = 0.5 #default to .5s between points when no value is specified
+
+		try: 
+			self.time_constant = self.time_constant_entry.get()
+		except:
+			self.time_constant = 1 #assume a time constant of 1s if none is specified. 
+		
 		#get the most recent experiment parameters
 		exp_params = self.parent.collection_params_frame.collection_params
 		l = len(exp_params["TrialNumber"])
@@ -215,7 +246,7 @@ class Data_Collection(tk.Frame):
 
 	def saveVoltageValues(self):
 		#later this will run the data collection stuff for now, just give me a number
-		data_point = dcf.collectDataPoint(self.num_points, 0.1, self.parent.my_scope)
+		data_point = dcf.collectDataPoint(self.num_points, self.time_btwn_pts, self.parent.my_scope)
 		v = data_point[0]
 		v_abs_mean_err = data_point[1]
 		v_std_dev = data_point[2]
@@ -267,7 +298,7 @@ class Collection_Parameters(tk.Frame):
 		self.parent = parent
 
 		#put the module on the page
-		self.grid(row=3, column=2, rowspan=11, columnspan=2, sticky=tk.N, padx=10, pady=20)
+		self.grid(row=3, column=2, rowspan=11, columnspan=2, sticky=tk.N, padx=10, pady=10)
 		
 		#create the params file
 		self.paramfilename = "Experiment_Params_" + self.parent.current_date+".csv"
@@ -278,6 +309,7 @@ class Collection_Parameters(tk.Frame):
 				"Cell": [],
 				"OvenTemperature": [],
 				"LaserWavelength": [],
+				"D1Resonance":[],
 				"D2Resonance":[],
 				"TrialNumber": [], 
 				"OpticalLength": [],
@@ -302,6 +334,7 @@ class Collection_Parameters(tk.Frame):
 		self.laser_power_lbl = tk.Label(self, text="Laser Power (LD1 value):", font=("Ariel", 12)) #laser power on readout
 		self.laser_temp_lbl = tk.Label(self, text="Laser Temperature (ACT T value):", font=("Ariel", 12)) #laser temp on readout
 		self.laser_wavelen_lbl = tk.Label(self, text="Probe Laser Wavelength (cm):", font=("Ariel", 12)) #laser wavelength, in cm
+		self.D1_wavelen_lbl = tk.Label(self, text="D1 Resonance Wavelength (cm):", font=("Ariel", 12)) #D2 wavelength, in cm
 		self.D2_wavelen_lbl = tk.Label(self, text="D2 Resonance Wavelength (cm):", font=("Ariel", 12)) #D2 wavelength, in cm
 
 		
@@ -315,6 +348,7 @@ class Collection_Parameters(tk.Frame):
 		self.laser_power_entry = tk.Entry(self, validatecommand=self.validate_laserpower, validate="focusout") #laser power on readout
 		self.laser_temp_entry = tk.Entry(self, validatecommand=self.validate_lasertemp, validate="focusout") #laser temp on readout
 		self.laser_wavelen_entry = tk.Entry(self, validatecommand=self.validate_wavelen, validate="focusout") #laser wavelength, in cm
+		self.D1_wavelen_entry = tk.Entry(self, validatecommand=self.validate_d1wavelen, validate="focusout") #d2 wavelength, in cm
 		self.D2_wavelen_entry = tk.Entry(self, validatecommand=self.validate_d2wavelen, validate="focusout") #d2 wavelength, in cm
 
 		self.lockin_sensitivity_entry = tk.Entry(self, validatecommand=self.validate_lockin, validate="focusout") #in VOLTS. THIS IS VERY IMPORTANT
@@ -336,12 +370,13 @@ class Collection_Parameters(tk.Frame):
 		self.laser_power_lbl.grid(row=4, column=0, columnspan=2, sticky=tk.W, padx=10)
 		self.laser_temp_lbl.grid(row=5, column=0, columnspan=2, sticky=tk.W, padx=10)
 		self.laser_wavelen_lbl.grid(row=6, column=0, columnspan=2, sticky=tk.W, padx=10)
-		self.D2_wavelen_lbl.grid(row=7, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.D1_wavelen_lbl.grid(row=7, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.D2_wavelen_lbl.grid(row=8, column=0, columnspan=2, sticky=tk.W, padx=10)
 
 		##these parameters will be different between caliration and collection
-		self.spacer_lbl.grid(row=8, column=0, columnspan=4, padx=10)
-		self.lockin_sensitivity_lbl.grid(row=9, column=0, columnspan=2, sticky=tk.W, padx=10)
-		self.trial_num_lbl.grid(row=10, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.spacer_lbl.grid(row=9, column=0, columnspan=4, padx=10)
+		self.lockin_sensitivity_lbl.grid(row=10, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.trial_num_lbl.grid(row=11, column=0, columnspan=2, sticky=tk.W, padx=10)
 
 
 		#parameter entry (right)
@@ -351,17 +386,18 @@ class Collection_Parameters(tk.Frame):
 		self.laser_power_entry.grid(row=4, column=2, columnspan=2, padx=10)
 		self.laser_temp_entry.grid(row=5, column=2, columnspan=2, padx=10)
 		self.laser_wavelen_entry.grid(row=6, column=2, columnspan=2, padx=10)
-		self.D2_wavelen_entry.grid(row=7, column=2, columnspan=2, padx=10)
+		self.D1_wavelen_entry.grid(row=7, column=2, columnspan=2, padx=10)
+		self.D2_wavelen_entry.grid(row=8, column=2, columnspan=2, padx=10)
 
 		##these parameters will be different between caliration and collection
-		self.lockin_sensitivity_entry.grid(row=9, column=2, columnspan=2, padx=10)		
-		self.trial_num_entry.grid(row=10, column=2, columnspan=2, padx=10)
+		self.lockin_sensitivity_entry.grid(row=10, column=2, columnspan=2, padx=10)		
+		self.trial_num_entry.grid(row=11, column=2, columnspan=2, padx=10)
 
 		# user feedback/error display
-		self.error_display_lbl.grid(row = 11, column=0, columnspan=4, padx=10)
+		self.error_display_lbl.grid(row = 12, column=0, columnspan=4, padx=10)
 
-		self.save_experiment_params_btn.grid(row=12, column=0)
-		self.disp_conversion_factor_lbl.grid(row=13, column=0)
+		self.save_experiment_params_btn.grid(row=13, column=0)
+		self.disp_conversion_factor_lbl.grid(row=14, column=0)
 
 
 ####################################################################################################
@@ -412,6 +448,7 @@ class Collection_Parameters(tk.Frame):
 		cell = cal_params["Cell"][num_cals-1]
 		oven = cal_params["OvenTemperature"][num_cals-1]
 		wavelength = cal_params["LaserWavelength"][num_cals-1]
+		d1res = cal_params["D1Resonance"][num_cals-1]
 		d2res = cal_params["D2Resonance"][num_cals-1]
 		optical_len = cal_params["OpticalLength"][num_cals-1]
 		laser_power = cal_params["LaserPower"][num_cals-1]
@@ -423,6 +460,7 @@ class Collection_Parameters(tk.Frame):
 		self.latest_collection_params["Cell"] = [cell]
 		self.latest_collection_params["OvenTemperature"] = [oven]
 		self.latest_collection_params["LaserWavelength"] = [wavelength]
+		self.latest_collection_params["D1Resonance"] = [d1res]
 		self.latest_collection_params["D2Resonance"] = [d2res]
 		self.latest_collection_params["OpticalLength"] = [optical_len]
 		self.latest_collection_params["LaserPower"] = [laser_power]
@@ -435,6 +473,7 @@ class Collection_Parameters(tk.Frame):
 		self.cell_entry.insert(tk.END, self.latest_collection_params["Cell"].values[0])
 		self.oven_temp_entry.insert(tk.END,self.latest_collection_params["OvenTemperature"].values[0]) #oven temp, in Celcius
 		self.laser_wavelen_entry.insert(tk.END, self.latest_collection_params["LaserWavelength"].values[0]) #laser wavelength, in cm
+		self.D1_wavelen_entry.insert(tk.END, self.latest_collection_params["D1Resonance"].values[0])
 		self.D2_wavelen_entry.insert(tk.END, self.latest_collection_params["D2Resonance"].values[0])
 		self.optical_len_entry.insert(tk.END, self.latest_collection_params["OpticalLength"].values[0]) #optical length, in cm
 		self.laser_power_entry.insert(tk.END,self.latest_collection_params["LaserPower"].values[0]) #laser power on readout
@@ -512,9 +551,15 @@ class Collection_Parameters(tk.Frame):
 		isAcceptable = util.entry_exists_is_number(val)
 		self.err_msg_disp(isAcceptable)
 		return isAcceptable
-	
+
+	def validate_d1wavelen(self):
+		val = self.D1_wavelen_entry.get()
+		isAcceptable = util.entry_exists_is_number(val)
+		self.err_msg_disp(isAcceptable)
+		return isAcceptable
+		
 	def validate_d2wavelen(self):
-		val = self.laser_wavelen_entry.get()
+		val = self.D2_wavelen_entry.get()
 		isAcceptable = util.entry_exists_is_number(val)
 		self.err_msg_disp(isAcceptable)
 		return isAcceptable
@@ -543,7 +588,7 @@ class Calibration_Parameters(tk.Frame):
 		super().__init__(parent)
 		self.parent = parent
 		# Put this sucker on the screen
-		self.grid(row=3, column=0, rowspan=11, columnspan=2, sticky=tk.N, padx=10, pady=20)
+		self.grid(row=3, column=0, rowspan=11, columnspan=2, sticky=tk.N, padx=10, pady=10)
 
 		#create a calibration file for the day if none exists
 		self.calfilename = "Calibration_" + self.parent.current_date+".csv"
@@ -555,6 +600,7 @@ class Calibration_Parameters(tk.Frame):
 			"Cell": [],
 			"OvenTemperature": [],
 			"LaserWavelength": [],
+			"D1Resonance":[],
 			"D2Resonance":[],
 			"OpticalLength": [],
 			"LaserPower": [], 
@@ -579,6 +625,7 @@ class Calibration_Parameters(tk.Frame):
 		self.laser_power_lbl = tk.Label(self, text="Laser Power (LD1 value):", font=("Ariel", 12)) #laser power on readout
 		self.laser_temp_lbl = tk.Label(self, text="Laser Temperature (ACT T value):", font=("Ariel", 12)) #laser temp on readout
 		self.laser_wavelen_lbl = tk.Label(self, text="Probe Laser Wavelength (cm):", font=("Ariel", 12)) #laser wavelength, in cm
+		self.D1_res_lbl = tk.Label(self, text="D1 Resonance Wavelength (cm):", font=("Ariel", 12)) #D1 resonance wavelength, in cm
 		self.D2_res_lbl = tk.Label(self, text="D2 Resonance Wavelength (cm):", font=("Ariel", 12)) #D2 resonance wavelength, in cm
 
 		
@@ -592,6 +639,7 @@ class Calibration_Parameters(tk.Frame):
 		self.laser_power_entry = tk.Entry(self, validatecommand=self.validate_laserpower, validate="focusout") #laser power on readout
 		self.laser_temp_entry = tk.Entry(self, validatecommand=self.validate_lasertemp, validate="focusout") #laser temp on readout
 		self.laser_wavelen_entry = tk.Entry(self, validatecommand=self.validate_wavelen, validate="focusout") #laser wavelength, in cm
+		self.D1_res_entry = tk.Entry(self, validatecommand=self.validate_d1) #D1resonance wavelength, in cm
 		self.D2_res_entry = tk.Entry(self, validatecommand=self.validate_d2) #D2 resonance wavelength, in cm
 
 		self.lockin_sensitivity_entry = tk.Entry(self, validatecommand=self.validate_lockin, validate="focusout") #in VOLTS. THIS IS VERY IMPORTANT
@@ -623,12 +671,13 @@ class Calibration_Parameters(tk.Frame):
 		self.laser_power_lbl.grid(row=4, column=0, columnspan=2, sticky=tk.W, padx=10)
 		self.laser_temp_lbl.grid(row=5, column=0, columnspan=2, sticky=tk.W, padx=10)
 		self.laser_wavelen_lbl.grid(row=6, column=0, columnspan=2, sticky=tk.W, padx=10)
-		self.D2_res_lbl.grid(row=7, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.D1_res_lbl.grid(row=7, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.D2_res_lbl.grid(row=8, column=0, columnspan=2, sticky=tk.W, padx=10)
 
 		##these parameters will be different between caliration and collection
-		self.spacer_lbl.grid(row=8, column=0, columnspan=4)
-		self.lockin_sensitivity_lbl.grid(row=9, column=0, columnspan=2, sticky=tk.W, padx=10)
-		self.physical_rotation_lbl.grid(row=10, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.spacer_lbl.grid(row=9, column=0, columnspan=4)
+		self.lockin_sensitivity_lbl.grid(row=10, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.physical_rotation_lbl.grid(row=11, column=0, columnspan=2, sticky=tk.W, padx=10)
 		#parameter entry (right)
 		self.cell_entry.grid(row=1, column=2, columnspan=2, padx=10)
 		self.oven_temp_entry.grid(row=2, column=2, columnspan=2, padx=10)
@@ -636,21 +685,22 @@ class Calibration_Parameters(tk.Frame):
 		self.laser_power_entry.grid(row=4, column=2, columnspan=2, padx=10)
 		self.laser_temp_entry.grid(row=5, column=2, columnspan=2, padx=10)
 		self.laser_wavelen_entry.grid(row=6, column=2, columnspan=2, padx=10)
-		self.D2_res_entry.grid(row=7, column=2, columnspan=2, padx=10)
+		self.D1_res_entry.grid(row=7, column=2, columnspan=2, padx=10)
+		self.D2_res_entry.grid(row=8, column=2, columnspan=2, padx=10)
 		##these parameters will be different between caliration and collection
-		self.lockin_sensitivity_entry.grid(row=9, column=2, columnspan=2, padx=10)
-		self.physical_rotation_entry.grid(row=10, column=2, columnspan=2, padx=10)
+		self.lockin_sensitivity_entry.grid(row=10, column=2, columnspan=2, padx=10)
+		self.physical_rotation_entry.grid(row=11, column=2, columnspan=2, padx=10)
 
 		#user feedback - show errors for incorrect entries here
-		self.error_display_lbl.grid(row=11, column=0, columnspan=4, padx=10)
+		self.error_display_lbl.grid(row=12, column=0, columnspan=4, padx=10)
 
 		#collect calibration vals
-		self.collect_cal_btn.grid(row=12, column=0, columnspan=2, sticky=tk.W, padx=10)
-		self.initial_cal_val_disp.grid(row=12, column=2, padx=10)
-		self.final_cal_val_disp.grid(row=12, column=3, padx=10)
+		self.collect_cal_btn.grid(row=13, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.initial_cal_val_disp.grid(row=13, column=2, padx=10)
+		self.final_cal_val_disp.grid(row=13, column=3, padx=10)
 		#save all the things to a file
-		self.save_params_button.grid(row=13, column=0, columnspan=2, sticky=tk.W, padx=10)
-		self.display_cal_value.grid(row=13, column=2, columnspan=2, padx=10)
+		self.save_params_button.grid(row=14, column=0, columnspan=2, sticky=tk.W, padx=10)
+		self.display_cal_value.grid(row=14, column=2, columnspan=2, padx=10)
 
 
 
@@ -707,7 +757,13 @@ class Calibration_Parameters(tk.Frame):
 		isAcceptable = util.entry_exists_is_number(val)
 		self.err_msg_disp(isAcceptable)
 		return isAcceptable
-	
+
+	def validate_d1(self):
+		val = self.D1_res_entry.get()
+		isAcceptable = util.entry_exists_is_number(val)
+		self.err_msg_disp(isAcceptable)
+		return isAcceptable
+
 	def validate_d2(self):
 		val = self.D2_res_entry.get()
 		isAcceptable = util.entry_exists_is_number(val)
@@ -777,6 +833,7 @@ class Calibration_Parameters(tk.Frame):
 			"Cell": [self.cell_entry.get()],
 			"OvenTemperature": [self.oven_temp_entry.get()],
 			"LaserWavelength": [self.laser_wavelen_entry.get()],
+			"D1Resonance":[self.D1_res_entry.get()],
 			"D2Resonance":[self.D2_res_entry.get()],
 			"OpticalLength": [self.optical_len_entry.get()],
 			"LaserPower": [self.laser_power_entry.get()], 
