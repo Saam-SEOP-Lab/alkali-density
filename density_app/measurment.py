@@ -211,17 +211,17 @@ class Data_Collection(tk.Frame):
 		#self.time_constant = 1
 		#try to get the user entered collection values 
 		try: 
-			self.num_points = self.num_points_entry.get()
+			self.num_points = int(self.num_points_entry.get())
 		except: 
 			self.num_points = 20 #default value
 		
 		try: 
-			self.time_btwn_pts = self.time_btwn_pts_entry.get()
+			self.time_btwn_pts = float(self.time_btwn_pts_entry.get())
 		except: 
 			self.time_btwn_pts = 0.5 #default to .5s between points when no value is specified
 
 		try: 
-			self.time_constant = self.time_constant_entry.get()
+			self.time_constant = float(self.time_constant_entry.get())
 		except:
 			self.time_constant = 1 #assume a time constant of 1s if none is specified. 
 		
