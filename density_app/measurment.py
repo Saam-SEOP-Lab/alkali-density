@@ -182,7 +182,7 @@ class Data_Collection(tk.Frame):
 		
 		self.error_display_lbl = tk.Label(self, text="", fg="red", font=("Ariel", 17))
 
-		self.data_display = scrolledtext.ScrolledText(self, wrap = tk.WORD, width=100, height=8)
+		self.data_display = scrolledtext.ScrolledText(self, wrap = tk.WORD, width=100, height=6)
 		
 		self.enter_current_label.grid(row=3, column=0, columnspan=1, padx=10, pady=ypad)
 		self.enter_current.grid(row=3, column=1, padx=10, pady=ypad)

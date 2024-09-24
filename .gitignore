@@ -166,3 +166,5 @@ GUI_experimentation/
 /final_data
 /modeling.ipynb
 /reprocessing.ipynb
+/calibrationfactors.ipynb
+/calibration_exp/*

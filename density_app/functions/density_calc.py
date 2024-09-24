@@ -26,7 +26,7 @@ h = 6.626176E-27
 
 #speed of light 
 #units: cm/s
-light_speed = 29979245800
+light_speed = 29979245800 
 
 #D1 transition resonance wavelength
 #units: cm
@@ -63,7 +63,7 @@ verdet_glass = (2.3e-6)*.3
 #given the laser frequency, returns the difference from given resonance
 #units: cgs
 def get_Delta_D(transition_freq, laser_freq):
-    delta_D = transition_freq - laser_freq
+    delta_D =  abs(laser_freq - transition_freq)
     return delta_D
 
 #given laser wavelength, returns laser frequency
