@@ -63,7 +63,7 @@ verdet_glass = (2.3e-6)*.3
 #given the laser frequency, returns the difference from given resonance
 #units: cgs
 def get_Delta_D(transition_freq, laser_freq):
-    delta_D =  abs(laser_freq - transition_freq)
+    delta_D =  laser_freq - transition_freq
     return delta_D
 
 #given laser wavelength, returns laser frequency
