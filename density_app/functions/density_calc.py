@@ -49,6 +49,9 @@ d2_resonance_lambda = 7.800334E-5
 #d2_resonance_f = 3.842306E+14 #pressure shifted for cell 309A
 d2_resonance_f = light_speed/d2_resonance_lambda #pressure low pressure cell line 314
 
+#Boltzman Constant
+#erg/K
+k_b = 1.380649E-16
 
 #constants in the B field equation for helmholz coils
 #B = [(4/5)^(3/2)*4*pi*10^-3]*[IN/R]
@@ -61,18 +64,21 @@ verdet_glass = (2.3e-6)*.3
 ######################## FUNCTIONS #################################
 
 #given the laser frequency, returns the difference from given resonance
+# ∆ = f_probe - f_resonance
 #units: cgs
 def get_Delta_D(transition_freq, laser_freq):
     delta_D =  laser_freq - transition_freq
     return delta_D
 
 #given laser wavelength, returns laser frequency
+# f = c/λ
 #units: cgs
 def get_frequency_from_wavelength(wavelength):
     freq = light_speed/wavelength
     return freq
 
 #given laser wavelength, return the delta term in the density calculation
+# ∆ = ((∆_D1)^2 (∆_D2)^2)/((4*∆_D2^2)+(*7∆_D1^2)-(2*∆_D2*∆_D1))
 def delta_term(d1_res, d2_res, laser_wavelen):
     laser_fr = get_frequency_from_wavelength(laser_wavelen)
     d1_f = get_frequency_from_wavelength(d1_res)
@@ -87,19 +93,68 @@ def delta_term(d1_res, d2_res, laser_wavelen):
     return delta_term
 
 #given optical path length return optical path term in density caculation
+# F = (18*m_e*h*c)/(l*q_e^2*μ_B)
+# (F is for preFactor)
 def optical_length_term(o_len):
     ol_numerator = 18 * m_electron * h * light_speed
     ol_denominator = o_len * q_electron**2 * mu_b
     ol = ol_numerator/ol_denominator
     return ol
 
+#converts a temperature in Celcius to Kelvin
+def convertTtoKelvin(temp):
+    T = temp+273.15
+    return T
+
+
 #given the slope of the rotation vs magnetic field graph, the optical path length 
 #and the laser wavelength, return the density of rubidium in the cell
+# [Rb] = (θ/B)((18*m_e*h*c)/(l*q_e^2*μ_B))*((∆_D1)^2 (∆_D2)^2)/((4*∆_D2^2)+(*7∆_D1^2)-(2*∆_D2*∆_D1))
 def rb_density(d1_res, d2_res, slope, o_len, laser_wave):
     deltas_term = delta_term(d1_res, d2_res, laser_wave)
     opt_len_term = optical_length_term(o_len)
     density = slope * opt_len_term * deltas_term
     return density
+
+#given the slope of the rotation vs magnetic field graph, the optical path length 
+#and the laser wavelength, return the density of rubidium in the cell
+#accounts for paramagnetic term
+# [Rb] = absolutely fuck this equation OMG
+## TODO - make a frequency object 
+def rb_density_full(d1_res, d2_res, slope, o_len, laser_wave, temp, isPositive):
+    fr_D1 = get_frequency_from_wavelength(d1_res)
+    fr_D2 = get_frequency_from_wavelength(d2_res)
+    f_probe = get_frequency_from_wavelength(laser_wave)
+    D1 = get_Delta_D(fr_D1, f_probe) #f_probe - f_D1
+    D2 = get_Delta_D(fr_D2, f_probe) #f_probe - f_D2
+    T = convertTtoKelvin(temp) 
+    prefactor = (6*m_electron*h*light_speed)/(o_len*mu_b*q_electron**2)
+    numerator = 3*(D1**2)*(D2**2)*k_b*T
+    denominator_main = k_b*T*(4*(D2**2)+7*(D1**2)-2*D1*D2)
+    denominator_para = 3*h*D1*D2*(D1-D2)
+    if(isPositive==False):
+        denominator_para = denominator_para*(-1)
+    density = slope*prefactor*numerator/(denominator_main+denominator_para)
+
+    return density
+
+
+def rb_density_full_alt(d1_res, d2_res, slope, o_len, laser_wave, temp, isPositive):
+    fr_D1 = get_frequency_from_wavelength(d1_res)
+    fr_D2 = get_frequency_from_wavelength(d2_res)
+    f_probe = get_frequency_from_wavelength(laser_wave)
+    D1 = get_Delta_D(fr_D1, f_probe) #f_probe - f_D1
+    D2 = get_Delta_D(fr_D2, f_probe) #f_probe - f_D2
+    T = convertTtoKelvin(temp) 
+    delta_main = (1/3)*(4/(D1**2)+7/(D2**2)-2/(D1*D2))
+    delta_para = (h/(k_b*T))*((1/D2)-(1/D1))
+    if(isPositive==False):
+        delta_para = (-1)*delta_para
+    full_delta = delta_main+delta_para
+    prefactor = (mu_b*o_len*q_electron**2)/(6*h*m_electron*light_speed)
+    density = slope/(prefactor*full_delta)
+    return density
+
 
 #given a current value, number of coil turns, and radius of coil,
 #returns the strength of the magnetic field, in Gauss
@@ -155,7 +210,7 @@ def glass_verdet_adj(verdet, glass_depth, rot_val, mag_field_val):
 
 # takes a temp in Celcuis and returns the Killian estimated density value of Rb
 def killian_density(temp):
-    T = float(temp) + 273.15
+    T = convertTtoKelvin(temp)
     a=26.41
     b=4132/T
     c = log10(T)
@@ -255,34 +310,50 @@ def get_my_data(d1_res, d2_res, fp, wavelength, optical_path):
                         'Probe Beam':[formatter(wavelength, 5)] })
     return output
 
-def get_my_data_no_file(date, cellname, temp, data, d1_res, d2_res, wavelength, optical_path):
+def get_my_data_no_file(date, cellname, temp, data, d1_res, d2_res, wavelength, optical_path, isPositive):
 
     #collected_date, cell, tmp = get_info_from_fname(fp)
     #b_field, rot, r_err_MAE, r_err_SDT = get_processed_data_from_csv(fp)
 
     collected_date = date
     cell = cellname
-    tmp = temp
+    tmp = float(temp)
     b_field = data["Magnetic Field (Gauss)"]
     rot = data["Rotation (Radians)"]
-    #r_err_MAE = data["Rotation Mean Absolute Error"]
     r_err_STD = data["Rotation Standard Deviation"]
-
     fit_params, cov = linear_fit_data_with_error(b_field, rot,r_err_STD)
     slope = fit_params[0]
-    #mae_avg_err = get_average_error(r_err_MAE)
-    #std_avg_err = get_average_error(r_err_STD)
     cov_err = get_error_from_covar(cov)
-    #max_err = np.array([mae_avg_err, std_avg_err, cov_err]).max()
+
+    # since we want to compare the density accounting for and not accounting for the paramagnetic term
+    # let's calculate and display both I guess
+    
+    ### DENSITY NO PARAMAGNETIC TERM
     density = formatter(rb_density(d1_res, d2_res, slope, optical_path, wavelength),4)
     density_error = formatter(rb_density(d1_res, d2_res, cov_err, optical_path, wavelength),4)
+
+
+    ### DENSITY WITH PARAMAGNETIC TERM
+    density_raw = rb_density_full(d1_res, d2_res, slope, optical_path, wavelength, tmp, isPositive)
+    density_full = formatter(density_raw, 4)
+    density_error_full = formatter((rb_density_full(d1_res, d2_res, cov_err, optical_path, wavelength, tmp, isPositive=False)), 4)
+    density_raw2 = rb_density_full_alt(d1_res, d2_res, slope, optical_path, wavelength, tmp, isPositive)
+    density_full2 = formatter(density_raw2, 4)
+    check_diff = formatter(abs(density_raw-density_raw2),4)
+
+    ### KILLIAN DENSITY
     killian_val = formatter(killian_density(tmp),4)
+
     #create my data frame
     output = pd.DataFrame({'Date': [collected_date],
                         'Cell Name': [cell],
                         'Temperature':[tmp],
                         'Density':[density],
-                        'Density Error':[density_error], 
+                        'Density Error':[density_error],
+                        'Density (with Paramagentic term)': [density_full],
+                        'Density (with para sanity check)': [density_full2],
+                        '[Rb]_para1-[Rb]_para2': [check_diff],
+                        'Density Error (with Paramagentic term)': [density_error_full],
                         'Killian Value':[killian_val],
                         'D1 Resonance':[formatter(d1_res,5)],
                         'D2 Resonance':[formatter(d2_res,5)],
