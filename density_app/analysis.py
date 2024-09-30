@@ -191,7 +191,17 @@ class App(ttk.Frame):
 		D1 = self.D1resonance
 		D2 = self.D2resonance
 		data = self.processed_data
-		self.result = get_my_data_no_file(date, cellname, temp, data, D1, D2, wl, olen)
+		res = get_my_data_no_file(date, cellname, temp, data, D1, D2, wl, olen, False)
+		self.result = pd.DataFrame({'Date': [res['Date'][0]],
+                        'Cell Name': [res['Cell Name'][0]],
+                        'Temperature':[res['Temperature'][0]],
+                        'Density':[res['Density (with Paramagentic term)'][0]],
+                        'Density Error':[res['Density Error (with Paramagentic term)'][0]], 
+                        'Killian Value':[res['Killian Value'][0]],
+						'D1 Resonance': [res['D1 Resonance'][0]],
+						'D2 Resonance': [res['D2 Resonance'][0]],
+						'Probe Beam': [res['Probe Beam'][0]] })
+
 		if self.process_counter == 0:
 			self.analysis_display.insert(tk.END, self.result.to_string(header=True))
 			self.analysis_display.insert(tk.END, '\n')
