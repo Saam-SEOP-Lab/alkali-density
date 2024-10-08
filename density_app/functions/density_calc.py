@@ -60,7 +60,10 @@ k_b = 1.380649E-16
 b_const = ((4 / 5)**(3/2)) * 4E-3 * np.pi
 
 #verdet constand of Pyrex Glass at 773nm, in radians/cm*Gauss
-verdet_glass = (2.3e-6)*.3 
+verdet_glass = 2.3e-6
+
+#glass depth for cylindrical cells
+glass_depth = 1.3
 ######################## FUNCTIONS #################################
 
 #given the laser frequency, returns the difference from given resonance
@@ -131,10 +134,13 @@ def rb_density_full(d1_res, d2_res, slope, o_len, laser_wave, temp, isPositive):
     prefactor = (6*m_electron*h*light_speed)/(o_len*mu_b*q_electron**2)
     numerator = 3*(D1**2)*(D2**2)*k_b*T
     denominator_main = k_b*T*(4*(D2**2)+7*(D1**2)-2*D1*D2)
-    denominator_para = 3*h*D1*D2*(D1-D2)
+    denominator_para = 3*h*D1*D2*(D2-D1)
     if(isPositive==False):
         denominator_para = denominator_para*(-1)
     density = slope*prefactor*numerator/(denominator_main+denominator_para)
+    if(isPositive == "both"):
+        if(f_probe < fr_D2):
+            denominator_para = denominator_para*(-1)
 
     return density
 
@@ -147,12 +153,23 @@ def rb_density_full_alt(d1_res, d2_res, slope, o_len, laser_wave, temp, isPositi
     D2 = get_Delta_D(fr_D2, f_probe) #f_probe - f_D2
     T = convertTtoKelvin(temp) 
     delta_main = (1/3)*(4/(D1**2)+7/(D2**2)-2/(D1*D2))
-    delta_para = (h/(k_b*T))*((1/D2)-(1/D1))
+    delta_para = (h/(k_b*T))*((1/D1)-(1/D2))
     if(isPositive==False):
         delta_para = (-1)*delta_para
     full_delta = delta_main+delta_para
     prefactor = (mu_b*o_len*q_electron**2)/(6*h*m_electron*light_speed)
     density = slope/(prefactor*full_delta)
+    return density
+
+def rb_density_full_wavelength(d1_res, d2_res, slope, o_len, laser_wave, temp):
+    prefactor = (mu_b*o_len*q_electron**2)/(6*m_electron*h*light_speed)
+    delta_wl_d1 = d1_res-laser_wave
+    delta_wl_d2 = d2_res-laser_wave
+    T = convertTtoKelvin(temp)
+    term1 = (laser_wave**2/(3*light_speed**2))*((4*d1_res**2)/delta_wl_d1**2+(7*d2_res**2)/delta_wl_d2**2-(2*d1_res*d2_res)/(delta_wl_d2*delta_wl_d1))
+    term2 = (h*laser_wave/(k_b*T*light_speed))*(d1_res/delta_wl_d1 - d2_res/delta_wl_d2)
+    combined = prefactor*(term1 - term2)
+    density = slope/combined
     return density
 
 
@@ -203,12 +220,16 @@ def calculateRotationConversionFactor(voltage_diff, cal_rot):
 # verdet constant should be in units of radians/cm*Tesla
 # glass_depth should be in units of cm
 # mag_field should be in units of Gauss
-def glass_verdet_adj(verdet, glass_depth, rot_val, mag_field_val):
-    verdet_adjment = (verdet*glass_depth)*mag_field_val
-    adjusted_rot = rot_val-verdet_adjment
-    return adjusted_rot
+def glass_verdet_adj(verdet, glass_depth, rotations, mag_fields):
+    adjusted_rotations = []
+    for i in range(0,len(mag_fields)):
+        verdet_adjment = (verdet*glass_depth)*mag_fields[i]
+        adjusted_rot = rotations[i]-verdet_adjment
+        adjusted_rotations.append(adjusted_rot)
+    return adjusted_rotations
 
 # takes a temp in Celcuis and returns the Killian estimated density value of Rb
+#comes from Clausius - Klaparone equation
 def killian_density(temp):
     T = convertTtoKelvin(temp)
     a=26.41
@@ -307,7 +328,7 @@ def get_my_data(d1_res, d2_res, fp, wavelength, optical_path):
                         'Killian Value':[killian_val],
                         'D1 Resonance':[formatter(d1_res,5)],
                         'D2 Resonance':[formatter(d2_res,5)],
-                        'Probe Beam':[formatter(wavelength, 5)] })
+                        'Probe Beam':[formatter(wavelength, 7)] })
     return output
 
 def get_my_data_no_file(date, cellname, temp, data, d1_res, d2_res, wavelength, optical_path, isPositive):
@@ -321,7 +342,11 @@ def get_my_data_no_file(date, cellname, temp, data, d1_res, d2_res, wavelength, 
     b_field = data["Magnetic Field (Gauss)"]
     rot = data["Rotation (Radians)"]
     r_err_STD = data["Rotation Standard Deviation"]
-    fit_params, cov = linear_fit_data_with_error(b_field, rot,r_err_STD)
+
+    #adjust rotations using verdet constant of glass
+    rot_adj = glass_verdet_adj(verdet_glass, glass_depth, rot, b_field)
+
+    fit_params, cov = linear_fit_data_with_error(b_field, rot_adj,r_err_STD)
     slope = fit_params[0]
     cov_err = get_error_from_covar(cov)
 
@@ -368,3 +393,51 @@ def convert_to_cm_if_needed(wavelength):
     else: 
         converted_wavelength = wavelength
     return converted_wavelength
+
+
+
+def get_my_data_compare_to_wleqn(date, cellname, temp, data, d1_res, d2_res, wavelength, optical_path, isPositive):
+
+    #collected_date, cell, tmp = get_info_from_fname(fp)
+    #b_field, rot, r_err_MAE, r_err_SDT = get_processed_data_from_csv(fp)
+
+    collected_date = date
+    cell = cellname
+    tmp = float(temp)
+    b_field = data["Magnetic Field (Gauss)"]
+    rot = data["Rotation (Radians)"]
+    r_err_STD = data["Rotation Standard Deviation"]
+
+    #adjust rotations using verdet constant of glass
+    rot_adj = glass_verdet_adj(verdet_glass, glass_depth, rot, b_field)
+
+    fit_params, cov = linear_fit_data_with_error(b_field, rot_adj,r_err_STD)
+    slope = fit_params[0]
+    cov_err = get_error_from_covar(cov)
+
+    ### DENSITY WITH PARAMAGNETIC TERM
+    density_raw = rb_density_full_alt(d1_res, d2_res, slope, optical_path, wavelength, tmp, isPositive)
+    density_full = formatter(density_raw, 4)
+    density_error_full = formatter((rb_density_full(d1_res, d2_res, cov_err, optical_path, wavelength, tmp, isPositive=False)), 4)
+    
+
+    ### DENSITY FROM WAVELENGTH EQUATION
+    density_wl = rb_density_full_wavelength(d1_res, d2_res, slope, optical_path, wavelength, tmp)
+    density_err_wl = rb_density_full_wavelength(d1_res, d2_res, cov_err, optical_path, wavelength, tmp)
+    diff = abs(density_raw-density_wl) 
+
+    ### KILLIAN DENSITY
+    killian_val = formatter(killian_density(tmp),4)
+
+    #create my data frame
+    output = pd.DataFrame({'Date': [collected_date],
+                        'Cell Name': [cell],
+                        'Temperature':[tmp],
+                        'Density (with Paramagentic term)': [density_full],
+                        'Density (from wavelength verison)':[formatter(density_wl, 5)],
+                        'Density Error (Frequency calc)': [density_error_full],
+                        'Density Error (Wavelength calc)':[formatter(density_err_wl, 5)], 
+                        'Diff':[formatter(diff, 5)],
+                        'Killian Value':[killian_val],
+                        'Probe Beam':[formatter(wavelength, 5)] })
+    return output
