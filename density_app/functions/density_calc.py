@@ -344,9 +344,9 @@ def get_my_data_no_file(date, cellname, temp, data, d1_res, d2_res, wavelength, 
     r_err_STD = data["Rotation Standard Deviation"]
 
     #adjust rotations using verdet constant of glass
-    rot_adj = glass_verdet_adj(verdet_glass, glass_depth, rot, b_field)
+    #rot_adj = glass_verdet_adj(verdet_glass, glass_depth, rot, b_field)
 
-    fit_params, cov = linear_fit_data_with_error(b_field, rot_adj,r_err_STD)
+    fit_params, cov = linear_fit_data_with_error(b_field, rot,r_err_STD)
     slope = fit_params[0]
     cov_err = get_error_from_covar(cov)
 
