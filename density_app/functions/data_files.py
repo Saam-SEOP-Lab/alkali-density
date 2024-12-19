@@ -213,3 +213,36 @@ def get_my_data_no_file(date, cellname, temp, data, d1_res, d2_res, wavelength, 
                         'D2 Resonance':[formatter(d2_res,5)],
                         'Probe Beam':[formatter(wavelength, 5)]})
     return output
+
+#Functions for data processing go here for now
+
+#Get data from specified file
+def get_plot_data(file, T):
+    """
+    Returns the density data from a specific file, to be used in finding the true density from the parabolic fit. 
+    
+    Parameters
+    ----------
+    file : string
+        The file path to the file containing the target data.
+    T : int
+        An integer value for the temperature of the oven in the target experiment.  
+
+    Returns
+    -------
+    killian_density : array 
+        An array of the density values as calculated by Killian's equation as floats. 
+    paramag_density : array 
+        An array of the density values as calculated using the density equation including the paramagnetic term. 
+    paramag_density_error : array 
+        An array of the errors corresponding to density values as calculated using the density equation including the paramagnetic term. 
+    probe_beam : array 
+        An array of the probe beam wavelengths.  
+    """
+    data_unsorted = pd.read_csv(file)
+    data = data_unsorted.sort_values('Probe Beam')
+    killian_density = data.loc[data['Temperature']== T, 'Killian Value']
+    paramag_density = data.loc[data['Temperature']== T, 'Density (with Paramagentic term)'].to_numpy()
+    paramag_density_error = data.loc[data['Temperature']== T, 'Density Error (with Paramagentic term)'].to_numpy()
+    probe_beam = data.loc[data['Temperature']== T, 'Probe Beam'].to_numpy()
+    return killian_density, paramag_density, paramag_density_error, probe_beam

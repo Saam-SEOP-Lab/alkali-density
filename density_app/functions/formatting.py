@@ -156,13 +156,14 @@ def datapoints_nice(xs, ys, x_name, y_name):
         Any array x values.
     ys : array
         Any array y values.
+    x_name : string
+        The name of the x data points.
+    y_name : string
+        The name of the y data points. 
 
     Returns
     -------
     arry_0 : array
-        An array of the form  [A1, A2, ... , AN].
-    arry_1 : array 
-        An array of the form [B1, B2, ... , BN].
     """
     df = pd.DataFrame({x_name: xs, 
                        y_name: ys })

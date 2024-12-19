@@ -9,7 +9,7 @@ from datetime import datetime
 import time
 
 #my libraries
-import functions.density_collection_functions as dcf
+import density_app.functions.density_collection as dcf
 from functions.validation import entry_exists_is_number, validate_text_exists
 from functions.data_files import createDataCSV
 from functions.formatting import formatter

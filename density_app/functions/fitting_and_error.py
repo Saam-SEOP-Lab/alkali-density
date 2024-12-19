@@ -225,3 +225,22 @@ def get_parabola_extrema(model):
     min_density = a*min_density_wavelength**2+b*min_density_wavelength+c
     return min_density_wavelength, min_density
 
+def get_percent_error(error_val, measured_val):
+    """
+    Calculates the percent error for a given value.  
+    
+    Parameters
+    ----------
+    error_val : float
+        The error on the value. 
+    measured_val : float
+        The value. 
+        
+    Returns
+    -------
+    perc_err :  float
+        The percent error. 
+    
+    """
+    perc_err = 100*error_val/measured_val
+    return perc_err

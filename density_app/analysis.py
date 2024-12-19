@@ -35,8 +35,7 @@ class App(ttk.Frame):
 						'Probe Beam': [] })
 		
 		self.process_counter = 0
-		
-
+	
         # Title, icon, size
 		#self.title("Alkali Density Analysis")
 		#self.iconbitmap('images/codemy.ico')

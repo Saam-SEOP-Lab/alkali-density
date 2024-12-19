@@ -35,12 +35,6 @@ def collectDataPoint(num_avg, time_interval, scope):
     data_point[2]=np.std(data_point_calc) #standard deviation from the mean
     return data_point
 
-
-def collectCurrent(resource):
-        prompt ='Enter current value in Amps'
-        current = input(prompt)
-        return current
-
 def list_instruments():
     """
     Obtains a list of the resources currently connected to the computer. 
