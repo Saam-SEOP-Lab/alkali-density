@@ -4,11 +4,8 @@ import pandas as pd
 from scipy.optimize import curve_fit
 from .utilities import formatter
 
-#TODO 
-# get_asymmetry_term and might be the same thing??? figure that out
-
-
 ######################### CONSTANTS #########################
+# TODO: Move to it's own constants file
 """
     Value: Bohr Magneton
     Units: erg/Gauss
@@ -33,8 +30,6 @@ m_electron = 9.1094E-28
 """
 h = 6.626176E-27
 
-#speed of light 
-#units: cm/s
 """
     Value: Speed of Light
     Units: cm/s
@@ -83,7 +78,6 @@ k_b = 1.380649E-16
 """
 b_const = ((4 / 5)**(3/2)) * 4E-3 * np.pi
 
-#verdet constand of Pyrex Glass at 773nm, in radians/cm*Gauss
 """
     Value: Verdet constant of Pyrex Glass at 773nm
         Notes: as reported by Phelps et all in https://doi.org/10.1063/1.4926459
@@ -98,79 +92,8 @@ verdet_glass = 2.3e-6
 glass_depth = 1.3
 ######################## FUNCTIONS #################################
 
-def get_frequency_from_wavelength(wavelength):
-    """
-    Converts a wavelength of light to the corresponding frequency value. All units are cgs. 
-
-    Parameters
-    ----------
-    wavelength : float
-        Wavelength to be converted. Wavelength should be entered in cm. 
-
-    Returns
-    -------
-    freq : float
-        The frequency value corresponding to the input wavelength value.  
-        Calculated as f = c/λ. 
-        Units: Hz
-    """
-    freq = light_speed/wavelength
-    return freq
-
-#converts a temperature in Celcius to Kelvin
-def convertTtoKelvin(temp):
-    """
-    Converts a Celsius temperature to Kelvin.
-
-    Parameters
-    ----------
-    temp : float
-        Temperature, in Celsius, to be converted to Kelvin. 
-
-    Returns
-    -------
-    T : float
-        Temperature in Kelvin. 
-    """
-    T = temp+273.15
-    return T
-
-
-def asymmetry_adjustement(optical_length, probe_beam, oscillator_str, line_width, kappa, Td, d2_res):
-    """
-    TBD
-
-    Parameters
-    ----------
-    optical_length : float
-        Path length traveled through the cell by the probe beam. 
-        Units: cm
-    probe_beam : float
-        Wavelength of the probe beam used. 
-        Units: cm
-    oscillator_str : float
-        Oscillator strength for the transition and alkali metal used. 
-    line_width : float
-        Width of the transition line. 
-        Units: Hz
-    kappa : float
-        A ratio associated with the specific transition being used. 
-    Td : float
-        The asymmetry parameter. Reported by Vleigen et al (2001), DOI: 10.1016/S0168-9002(00)01061-5.
-    d2_res : float
-        D2 transition resonance wavelength for the alkali metal and cell used. 
-        Units: cm
-
-    Returns
-    -------
-    asymmetry : float
-        Returns the asymmetry correction term to the density equation. 
-    """
-    delta_2 = probe_beam - d2_res
-    denominator = h*(light_speed**4)*m_electron*(delta_2**3)
-    numerator = 0.106*(d2_res**6)*optical_length*oscillator_str*mu_b*(line_width**2)*kappa*(q_electron**2)*Td
-    asymmetry = numerator/denominator
-    return asymmetry
+######################## Alkali Metal Density Functions #####################################
+# TODO: MOVE TO OWN file
 
 #rd_density_first_order - only calculates main term of density equation
 #rb_density_second_order - includes paramagnetic term (can be additive or subtractive)
@@ -329,8 +252,6 @@ def get_asymmetry_term(optical_length, oscillator_strength, line_width, kappa, p
     denominator = m_electron*light_speed**4*h*(probe_beam-resonance)**3
     asym_correction = numerator/denominator
     return asym_correction
-    
-#####
 
 #first term in the density equation, no additional corrections
 def rb_density_first_order(d1_res, d2_res, optical_length, probe_beam, slope):
@@ -468,6 +389,46 @@ def rb_density_third_order(d1_res, d2_res, optical_length, probe_beam, temp,
     rb_density = slope/F_all
     return rb_density
 
+##################################################################################################
+
+####################### CONVERSION FUNCTIONS  ################################
+# TODO: Move to own file
+
+def get_frequency_from_wavelength(wavelength):
+    """
+    Converts a wavelength of light to the corresponding frequency value. All units are cgs. 
+
+    Parameters
+    ----------
+    wavelength : float
+        Wavelength to be converted. Wavelength should be entered in cm. 
+
+    Returns
+    -------
+    freq : float
+        The frequency value corresponding to the input wavelength value.  
+        Calculated as f = c/λ. 
+        Units: Hz
+    """
+    freq = light_speed/wavelength
+    return freq
+
+def convertTtoKelvin(temp):
+    """
+    Converts a Celsius temperature to Kelvin.
+
+    Parameters
+    ----------
+    temp : float
+        Temperature, in Celsius, to be converted to Kelvin. 
+
+    Returns
+    -------
+    T : float
+        Temperature in Kelvin. 
+    """
+    T = temp+273.15
+    return T
 
 def convertItoB(current):
     """
@@ -572,113 +533,32 @@ def calculateRotationConversionFactor(voltage_diff, cal_rot):
     conversion_factor = cal_rot_Radians/voltage_diff
     return conversion_factor
 
-def glass_verdet_adj(verdet_rotation, rotations, mag_fields):
+#sometimes the wavelengths get entered in nm not cm
+#convert them when that happens
+def convert_to_cm_if_needed(wavelength):
     """
-    Adjusts the rotation values to account for the Verdet effect of the cell glass and oven windows.  
+    Converts wavelength values entered into the density data collection app nm into cm. This function assumes that users will either enter the wavelength as cm (the correct units for consistency with cgs system of units) or nm (the more conceptually friendly units for wavelength of the relevant size). So wavelengths entered are checked and if the number entered is greater than 100, it is assumed that the user entered the value in nm, rather than cm and converts to cm accordingly. 
 
     Parameters
     ----------
-    verdet_rotation : float
-        Verdet effect constant for the experiment. 
-        Units: radians/cm*Gauss
-    rotations : array
-        An array containing the uncorrected rotation values as floats.  
-    mag_fields: array 
-        An array containing the magnetic field values as floats. 
+    wavelength : float
+        The wavelength of the probe beam. 
 
     Returns
     -------
-    adjusted_rotations : array
-        An array of rotation values adjusted to account for the Verdet effect, as floats. 
+    converted_wavelength :  float
+        The error as determined by taking the square root of the covariance matrix term associated with the slope value. 
     """
-    adjusted_rotations = []
-    for i in range(0,len(mag_fields)):
-        verdet_adjment = verdet_rotation*mag_fields[i]
-        adjusted_rot = rotations[i]-verdet_adjment
-        adjusted_rotations.append(adjusted_rot)
-    return adjusted_rotations
+    if(wavelength>100):
+        converted_wavelength = wavelength*(10**(-7))
+    else: 
+        converted_wavelength = wavelength
+    return converted_wavelength
+##################################################################################################
 
-def killian_density(temp):
-    """
-    Calculates the Killian Density Values for the specified oven temperature. See Killian (1926) 10.1103/PhysRev.27.578 for additional information. 
-    NOTE: This function calculates the Killian density for Rb specifically. 
 
-    Parameters
-    ----------
-    temp : float
-        Temperature of the oven.  
-        Units: Celsius (note that the function will convert to kelvin)  
-
-    Returns
-    -------
-    rb_den : float 
-        The density of Rubidium as calculated by Killian's empirical equation. 
-    """
-    T = convertTtoKelvin(temp)
-    a=26.41
-    b=4132/T
-    c = log10(T)
-    rb_den = 10 **(a-b-c)
-    return rb_den
-
-def get_processed_data_from_csv(fp):
-    """
-    Returns density data in a csv file as a set of arrays. 
-    
-    Parameters
-    ----------
-    fp : string
-        The file path to the file containing the target data. 
-
-    Returns
-    -------
-    magnetic_fields : array 
-        An array of float values representing the magnetic field values used in the experiment. 
-    rotation_vals : array 
-        An array of float values representing the rotation field values found in the experiment. 
-    rotation_MAE : array 
-        An array of float values representing the mean average error of the rotation values found in the experiment. 
-    rotation_STD : array 
-        An array of float values representing the standard deviations of the rotation values found in the experiment. 
-    """
-    processed_data = pd.read_csv(fp)
-    # Convert each column of the dataframe into a numpy array
-    magnetic_fields = processed_data["Magnetic Field (Gauss)"].to_numpy()
-    rotation_vals = processed_data["Rotation (Radians)"].to_numpy()
-    rotation_MAE = processed_data["Rotation Mean Absolute Error"].to_numpy()
-    rotation_STD = processed_data["Rotation Standard Deviation"].to_numpy()
-
-    return magnetic_fields, rotation_vals, rotation_MAE, rotation_STD
-
-def get_info_from_fname(processed_filepath):
-    """
-    Takes the file path to a processed faraday rotation data set and returns the experiment parameters associated with that file.
-    
-    Parameters
-    ----------
-    processed_filepath : string
-        The file path to the file containing the target data. 
-
-    Returns
-    -------
-    col_date : string 
-        The collection date of the experiment. 
-    cell_name : string 
-        The id of the cell used in the experiment. 
-    temperature : string 
-        The oven temperature, in Celsius, used for the experiment. 
-    """
-    #split the file path by / 
-    fp_ary = str(processed_filepath).split('/')
-    #take the last element of the array to get the file name
-    #split that on . to separate extension from rest of name
-    properties = fp_ary[-1].split('.')[0].split('_')
-    #need to get the following params from the 
-    col_date = properties[0]
-    cell_name = properties[1].split('-')[1]
-    temperature = properties[2].split('-')[1]
-    return col_date, cell_name, temperature
-
+######################### FITTING AND ERROR FUNCTIONS ##########################################
+# TODO: move to own file
 def linear_fit_data(x_vals, y_vals):
     """
     Returns a linear fit, using scipy.optimize's curve fit function, for the specified data. This version of the linear fit does not use the error on the points as all in it's calculations. 
@@ -766,6 +646,68 @@ def get_error_from_covar(p_cov):
     """
     cov_err = np.sqrt(p_cov[0][0])
     return cov_err
+
+################################################################################################################
+
+############################### DATA FILES AND DATA PROCESSING #####################################################
+
+def get_processed_data_from_csv(fp):
+    """
+    Returns density data in a csv file as a set of arrays. 
+    
+    Parameters
+    ----------
+    fp : string
+        The file path to the file containing the target data. 
+
+    Returns
+    -------
+    magnetic_fields : array 
+        An array of float values representing the magnetic field values used in the experiment. 
+    rotation_vals : array 
+        An array of float values representing the rotation field values found in the experiment. 
+    rotation_MAE : array 
+        An array of float values representing the mean average error of the rotation values found in the experiment. 
+    rotation_STD : array 
+        An array of float values representing the standard deviations of the rotation values found in the experiment. 
+    """
+    processed_data = pd.read_csv(fp)
+    # Convert each column of the dataframe into a numpy array
+    magnetic_fields = processed_data["Magnetic Field (Gauss)"].to_numpy()
+    rotation_vals = processed_data["Rotation (Radians)"].to_numpy()
+    rotation_MAE = processed_data["Rotation Mean Absolute Error"].to_numpy()
+    rotation_STD = processed_data["Rotation Standard Deviation"].to_numpy()
+
+    return magnetic_fields, rotation_vals, rotation_MAE, rotation_STD
+
+def get_info_from_fname(processed_filepath):
+    """
+    Takes the file path to a processed faraday rotation data set and returns the experiment parameters associated with that file.
+    
+    Parameters
+    ----------
+    processed_filepath : string
+        The file path to the file containing the target data. 
+
+    Returns
+    -------
+    col_date : string 
+        The collection date of the experiment. 
+    cell_name : string 
+        The id of the cell used in the experiment. 
+    temperature : string 
+        The oven temperature, in Celsius, used for the experiment. 
+    """
+    #split the file path by / 
+    fp_ary = str(processed_filepath).split('/')
+    #take the last element of the array to get the file name
+    #split that on . to separate extension from rest of name
+    properties = fp_ary[-1].split('.')[0].split('_')
+    #need to get the following params from the 
+    col_date = properties[0]
+    cell_name = properties[1].split('-')[1]
+    temperature = properties[2].split('-')[1]
+    return col_date, cell_name, temperature
 
 #TODO - rename this function
 def get_my_data_no_file(date, cellname, temp, data, d1_res, d2_res, wavelength, optical_path, isPositive, verdet_adjustment):
@@ -860,24 +802,55 @@ def get_my_data_no_file(date, cellname, temp, data, d1_res, d2_res, wavelength, 
                         'Probe Beam':[formatter(wavelength, 5)]})
     return output
 
-#sometimes the wavelengths get entered in nm not cm
-#convert them when that happens
-def convert_to_cm_if_needed(wavelength):
+##################################################################################################
+
+####################### MISC. #####################################################################
+
+def glass_verdet_adj(verdet_rotation, rotations, mag_fields):
     """
-    Converts wavelength values entered into the density data collection app nm into cm. This function assumes that users will either enter the wavelength as cm (the correct units for consistency with cgs system of units) or nm (the more conceptually friendly units for wavelength of the relevant size). So wavelengths entered are checked and if the number entered is greater than 100, it is assumed that the user entered the value in nm, rather than cm and converts to cm accordingly. 
+    Adjusts the rotation values to account for the Verdet effect of the cell glass and oven windows.  
 
     Parameters
     ----------
-    wavelength : float
-        The wavelength of the probe beam. 
+    verdet_rotation : float
+        Verdet effect constant for the experiment. 
+        Units: radians/cm*Gauss
+    rotations : array
+        An array containing the uncorrected rotation values as floats.  
+    mag_fields: array 
+        An array containing the magnetic field values as floats. 
 
     Returns
     -------
-    converted_wavelength :  float
-        The error as determined by taking the square root of the covariance matrix term associated with the slope value. 
+    adjusted_rotations : array
+        An array of rotation values adjusted to account for the Verdet effect, as floats. 
     """
-    if(wavelength>100):
-        converted_wavelength = wavelength*(10**(-7))
-    else: 
-        converted_wavelength = wavelength
-    return converted_wavelength
+    adjusted_rotations = []
+    for i in range(0,len(mag_fields)):
+        verdet_adjment = verdet_rotation*mag_fields[i]
+        adjusted_rot = rotations[i]-verdet_adjment
+        adjusted_rotations.append(adjusted_rot)
+    return adjusted_rotations
+
+def killian_density(temp):
+    """
+    Calculates the Killian Density Values for the specified oven temperature. See Killian (1926) 10.1103/PhysRev.27.578 for additional information. 
+    NOTE: This function calculates the Killian density for Rb specifically. 
+
+    Parameters
+    ----------
+    temp : float
+        Temperature of the oven.  
+        Units: Celsius (note that the function will convert to kelvin)  
+
+    Returns
+    -------
+    rb_den : float 
+        The density of Rubidium as calculated by Killian's empirical equation. 
+    """
+    T = convertTtoKelvin(temp)
+    a=26.41
+    b=4132/T
+    c = log10(T)
+    rb_den = 10 **(a-b-c)
+    return rb_den

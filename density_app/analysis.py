@@ -1,16 +1,14 @@
-#public libraries
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 from tkinter import scrolledtext
 import pandas as pd
-from functions.density_calc import convertItoB_mainroom, convertVtoRot, get_info_from_fname, get_my_data_no_file, convert_to_cm_if_needed
 import numpy as np
 import pandas as pd
 
-#my libraries
-#import functions.utilities as util
-#import functions.density_collection_functions as dcf
+from functions.conversions import convertItoB_mainroom, convertVtoRot, convert_to_cm_if_needed
+from functions.data_files import get_info_from_fname, get_my_data_no_file
+
 
 #what the app needs to do
 ## 1. allow user to select raw data file
@@ -161,8 +159,6 @@ class App(ttk.Frame):
 			self.D2resonance = convert_to_cm_if_needed(float(experiment_params['D2Resonance'][0]))
 		except: 
 			self.D2resonance = 7.800334E-5 #default D2 resonance in cm
-
-
 
 	def choose_file(self):
 		file = filedialog.askopenfilename(filetypes=[('CSV files', '*.csv')])

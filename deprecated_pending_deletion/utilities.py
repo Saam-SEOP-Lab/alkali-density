@@ -4,6 +4,9 @@ from datetime import date
 import csv
 import pandas as pd
 
+
+### FORMATTING AND DISPLAY
+
 def formatter(n, p):
     """
     Rounds to the specified number of decimal places and formats the number into scientific notation.
@@ -41,31 +44,6 @@ def getDateString():
     today = date.today()
     datestring = today.strftime("%m%d%Y")
     return datestring
-
-def exportToCSV(fp, fields, formatted_data):
-    """
-    Exports the provided data to a csv file. 
-    
-    Parameters
-    ----------
-    fp : string
-        location to save the data to, as a string.
-    fields : array of strings
-        the headers for the csv as an array. 
-    formatted_data : 2D array 
-        the data to save to the csv file as two dimensional array. 
-    """
-
-    filename = str(fp)
-    #first check that no files with the same name exist
-    with open(filename, 'w') as csvfile:
-        # creating a csv writer object
-        csvwriter = csv.writer(csvfile)
-        # writing the fields
-        csvwriter.writerow(fields)
-        # writing the data rows
-        csvwriter.writerows(formatted_data)   
-
 
 def stringArraytoFloatArray(str_arry):
     l = len(str_arry)
@@ -105,26 +83,31 @@ def twoDArryToTwoOneDArry(arry):
         arry_1.append(x[1])
     return (arry_0, arry_1)
 
-#takes an array of timestamps and converts it to two arrays, one containing all the dates, the other containing all the times
-def formatTimestampsForCSV(times):
-    arry_0 = []
-    arry_1 = []
+## FILE CREATION AND MANIPULATION
 
-    for x in times:
-        temp = timestampToArray(x)
-        arry_0.append(temp[0])
-        arry_1.append(temp[1])
+def exportToCSV(fp, fields, formatted_data):
+    """
+    Exports the provided data to a csv file. 
     
-    return (arry_0, arry_1)
+    Parameters
+    ----------
+    fp : string
+        location to save the data to, as a string.
+    fields : array of strings
+        the headers for the csv as an array. 
+    formatted_data : 2D array 
+        the data to save to the csv file as two dimensional array. 
+    """
 
-def meanAbsError(data_set):
-    sum = 0
-    num_pts = len(data_set)
-    avg = np.average(data_set)
-    for i in range(num_pts): 
-        sum += abs(data_set[i] - avg) 
-    error = sum/num_pts
-    return error
+    filename = str(fp)
+    #first check that no files with the same name exist
+    with open(filename, 'w') as csvfile:
+        # creating a csv writer object
+        csvwriter = csv.writer(csvfile)
+        # writing the fields
+        csvwriter.writerow(fields)
+        # writing the data rows
+        csvwriter.writerows(formatted_data)   
 
 def createFilePath(folder, collection_type):
     filename = collection_type + dtStringForFilename()
@@ -145,6 +128,25 @@ def createParamsCSV(fp, params):
     file = open(fp, 'w')
     params.to_csv(fp, mode='w', index=False)
     file.close()
+
+#takes an array of timestamps and converts it to two arrays, one containing all the dates, the other containing all the times
+def formatTimestampsForCSV(times):
+    arry_0 = []
+    arry_1 = []
+
+    for x in times:
+        temp = timestampToArray(x)
+        arry_0.append(temp[0])
+        arry_1.append(temp[1])
+    
+    return (arry_0, arry_1)
+
+
+
+
+
+
+## Text validation
 
 def validate_is_float(text):
 	try:
@@ -168,3 +170,5 @@ def entry_exists_is_number(text):
 	if (exists and isNum):
 		acceptableNumerical = True
 	return acceptableNumerical
+
+

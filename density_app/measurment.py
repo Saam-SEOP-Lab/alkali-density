@@ -8,11 +8,11 @@ import pandas as pd
 from datetime import datetime
 import time
 
-
-
 #my libraries
-import functions.utilities as util
 import functions.density_collection_functions as dcf
+from functions.validation import entry_exists_is_number, validate_text_exists
+from functions.data_files import createDataCSV
+from functions.formatting import formatter
 
 
 
@@ -192,7 +192,7 @@ class Data_Collection(tk.Frame):
 
 	def validate_current(self):
 		val = self.enter_current.get()
-		isOk = util.entry_exists_is_number(val)
+		isOk = entry_exists_is_number(val)
 		#if an invalid entry exists:
 		if(isOk==False):
 			## show error
@@ -255,7 +255,7 @@ class Data_Collection(tk.Frame):
 	def save_text_and_clear(self):
 		#step 0: check the value in current field is valid
 		val = self.enter_current.get()
-		isOK = util.entry_exists_is_number(val)
+		isOK = entry_exists_is_number(val)
 		if(isOK==False):
 			self.error_display_lbl["text"]="Current value must be a number."
 		else:
@@ -423,7 +423,7 @@ class Collection_Parameters(tk.Frame):
 			#create the data frame for the experiment parameters
 			self.collection_params = self.latest_collection_params
 			self.trial_num = 1
-			self.param_file = util.createDataCSV(self.param_filepath, self.collection_params)
+			self.param_file = createDataCSV(self.param_filepath, self.collection_params)
 
 	def update_from_cal_params(self):
 		self.checkForParamsFile()
@@ -502,7 +502,7 @@ class Collection_Parameters(tk.Frame):
 		self.latest_collection_params.to_csv(self.param_filepath, mode='a', index=False, header=False)
 		self.collection_params = pd.concat([self.collection_params, self.latest_collection_params]).reset_index(drop = True)
 		#show the calculated calibration value on screen
-		conv_f_formatted = util.formatter(conv_f, 4)
+		conv_f_formatted = formatter(conv_f, 4)
 		self.disp_conversion_factor_lbl["text"]="Conversion Factor: " + str(conv_f_formatted)
 
 ########### VALIDATION FUNCTIONS #######################################################	
@@ -516,7 +516,7 @@ class Collection_Parameters(tk.Frame):
 
 	def validate_cellname(self):
 		val = self.cell_entry.get()
-		isAcceptable = util.validate_text_exists(val)
+		isAcceptable = validate_text_exists(val)
 		if(isAcceptable):
 			self.error_display_lbl.config(text="")
 		else: self.error_display_lbl.config(text="This field cannot be blank")
@@ -524,55 +524,55 @@ class Collection_Parameters(tk.Frame):
 
 	def validate_oventemp(self):
 		val = self.oven_temp_entry.get()
-		isAcceptable = util.entry_exists_is_number(val)
+		isAcceptable = entry_exists_is_number(val)
 		self.err_msg_disp(isAcceptable)
 		return isAcceptable
 	
 	def validate_optlen(self):
 		val = self.optical_len_entry.get()
-		isAcceptable = util.entry_exists_is_number(val)
+		isAcceptable = entry_exists_is_number(val)
 		self.err_msg_disp(isAcceptable)
 		return isAcceptable
 	
 	def validate_laserpower(self):
 		val = self.laser_power_entry.get()
-		isAcceptable = util.entry_exists_is_number(val)
+		isAcceptable = entry_exists_is_number(val)
 		self.err_msg_disp(isAcceptable)
 		return isAcceptable
 	
 	def validate_lasertemp(self):
 		val = self.laser_temp_entry.get()
-		isAcceptable = util.entry_exists_is_number(val)
+		isAcceptable = entry_exists_is_number(val)
 		self.err_msg_disp(isAcceptable)
 		return isAcceptable
 	
 	def validate_wavelen(self):
 		val = self.laser_wavelen_entry.get()
-		isAcceptable = util.entry_exists_is_number(val)
+		isAcceptable = entry_exists_is_number(val)
 		self.err_msg_disp(isAcceptable)
 		return isAcceptable
 
 	def validate_d1wavelen(self):
 		val = self.D1_wavelen_entry.get()
-		isAcceptable = util.entry_exists_is_number(val)
+		isAcceptable = entry_exists_is_number(val)
 		self.err_msg_disp(isAcceptable)
 		return isAcceptable
 		
 	def validate_d2wavelen(self):
 		val = self.D2_wavelen_entry.get()
-		isAcceptable = util.entry_exists_is_number(val)
+		isAcceptable = entry_exists_is_number(val)
 		self.err_msg_disp(isAcceptable)
 		return isAcceptable
 	
 	def validate_lockin(self):
 		val = self.lockin_sensitivity_entry.get()
-		isAcceptable = util.entry_exists_is_number(val)
+		isAcceptable = entry_exists_is_number(val)
 		self.err_msg_disp(isAcceptable)
 		return isAcceptable
 	
 	def validate_trialnum(self):
 		val = self.trial_num_entry.get()
-		isAcceptable = util.entry_exists_is_number(val)
+		isAcceptable = entry_exists_is_number(val)
 		self.err_msg_disp(isAcceptable)
 		return isAcceptable
 
@@ -722,7 +722,7 @@ class Calibration_Parameters(tk.Frame):
 
 	def validate_cellname(self):
 		val = self.cell_entry.get()
-		isAcceptable = util.validate_text_exists(val)
+		isAcceptable = validate_text_exists(val)
 		if(isAcceptable):
 			self.error_display_lbl.config(text="")
 		else: self.error_display_lbl.config(text="This field cannot be blank")
@@ -730,55 +730,55 @@ class Calibration_Parameters(tk.Frame):
 
 	def validate_oventemp(self):
 		val = self.oven_temp_entry.get()
-		isAcceptable = util.entry_exists_is_number(val)
+		isAcceptable = entry_exists_is_number(val)
 		self.err_msg_disp(isAcceptable)
 		return isAcceptable
 	
 	def validate_optlen(self):
 		val = self.optical_len_entry.get()
-		isAcceptable = util.entry_exists_is_number(val)
+		isAcceptable = entry_exists_is_number(val)
 		self.err_msg_disp(isAcceptable)
 		return isAcceptable
 	
 	def validate_laserpower(self):
 		val = self.laser_power_entry.get()
-		isAcceptable = util.entry_exists_is_number(val)
+		isAcceptable = entry_exists_is_number(val)
 		self.err_msg_disp(isAcceptable)
 		return isAcceptable
 	
 	def validate_lasertemp(self):
 		val = self.laser_temp_entry.get()
-		isAcceptable = util.entry_exists_is_number(val)
+		isAcceptable = entry_exists_is_number(val)
 		self.err_msg_disp(isAcceptable)
 		return isAcceptable
 	
 	def validate_wavelen(self):
 		val = self.laser_wavelen_entry.get()
-		isAcceptable = util.entry_exists_is_number(val)
+		isAcceptable = entry_exists_is_number(val)
 		self.err_msg_disp(isAcceptable)
 		return isAcceptable
 
 	def validate_d1(self):
 		val = self.D1_res_entry.get()
-		isAcceptable = util.entry_exists_is_number(val)
+		isAcceptable = entry_exists_is_number(val)
 		self.err_msg_disp(isAcceptable)
 		return isAcceptable
 
 	def validate_d2(self):
 		val = self.D2_res_entry.get()
-		isAcceptable = util.entry_exists_is_number(val)
+		isAcceptable = entry_exists_is_number(val)
 		self.err_msg_disp(isAcceptable)
 		return isAcceptable
 	
 	def validate_lockin(self):
 		val = self.lockin_sensitivity_entry.get()
-		isAcceptable = util.entry_exists_is_number(val)
+		isAcceptable = entry_exists_is_number(val)
 		self.err_msg_disp(isAcceptable)
 		return isAcceptable
 	
 	def validate_rotation(self):
 		val = self.physical_rotation_entry.get()
-		isAcceptable = util.entry_exists_is_number(val)
+		isAcceptable = entry_exists_is_number(val)
 		self.err_msg_disp(isAcceptable)
 		return isAcceptable
 
@@ -790,20 +790,20 @@ class Calibration_Parameters(tk.Frame):
 			self.cal_params = pd.read_csv(self.calibration_filepath)
 		else:
 			self.cal_params = self.latest_cal_params
-			self.calibration_file = util.createDataCSV(self.calibration_filepath, self.cal_params)
+			self.calibration_file = createDataCSV(self.calibration_filepath, self.cal_params)
 
 	def getCal(self):
 		if (self.initial_cal_val_disp["text"]=="TBD"):
 			self.cal1=dcf.collectDataPoint(5, 0.01, self.parent.my_scope)
 			#for testing when no scope present comment above and use
 			#self.cal1 = [1,0.1,0.1]
-			cal_1_formmated = util.formatter(self.cal1[0], 4)
+			cal_1_formmated = formatter(self.cal1[0], 4)
 			self.initial_cal_val_disp["text"]=cal_1_formmated
 		elif (self.final_cal_val_disp["text"]=="TBD"):
 			self.cal2=dcf.collectDataPoint(5, 0.01, self.parent.my_scope)
 			#for testing when no scope present comment above and use
 			#self.cal2 = [3,0.1,0.1]
-			cal_2_formmated = util.formatter(self.cal2[0], 4)
+			cal_2_formmated = formatter(self.cal2[0], 4)
 			self.final_cal_val_disp["text"]=cal_2_formmated
 		else:
 			print("calibration complete")
@@ -851,7 +851,7 @@ class Calibration_Parameters(tk.Frame):
 		new_row.to_csv(self.calibration_filepath, mode='a', index=False, header=False)
 		self.cal_params = pd.concat([self.cal_params, new_row]).reset_index(drop = True)
 		#show the calculated calibration value on screen
-		cal_f_formatted = util.formatter(cal_factor, 4)
+		cal_f_formatted = formatter(cal_factor, 4)
 		self.display_cal_value["text"]="Calibration Factor: " + str(cal_f_formatted)
 
 	def clear_cal_info():
