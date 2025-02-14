@@ -1,10 +1,13 @@
 import csv
 import pandas as pd
+import os
 
-from functions.formatting import dtStringForFilename, timestampToArray
-from functions.formatting import formatter
-from functions.fitting_and_error import linear_fit_data_with_error, get_error_from_covar
-from functions.alkali_density_calculation import rb_density_first_order, rb_density_second_order, rb_density_third_order, killian_density, glass_verdet_adj
+
+from .formatting import dtStringForFilename, timestampToArray, formatter
+from .fitting_and_error import linear_fit_data_with_error, get_error_from_covar
+from .alkali_density_calculation import rb_density_first_order, rb_density_second_order, rb_density_third_order, killian_density, glass_verdet_adj
+from .conversions import convertItoB_mainroom, convertVtoRot
+from fnmatch import fnmatch
 
 
 def exportToCSV(fp, fields, formatted_data):
@@ -214,9 +217,6 @@ def get_my_data_no_file(date, cellname, temp, data, d1_res, d2_res, wavelength, 
                         'Probe Beam':[formatter(wavelength, 5)]})
     return output
 
-#Functions for data processing go here for now
-
-#Get data from specified file
 def get_plot_data(file, T):
     """
     Returns the density data from a specific file, to be used in finding the true density from the parabolic fit. 
@@ -246,3 +246,126 @@ def get_plot_data(file, T):
     paramag_density_error = data.loc[data['Temperature']== T, 'Density Error (with Paramagentic term)'].to_numpy()
     probe_beam = data.loc[data['Temperature']== T, 'Probe Beam'].to_numpy()
     return killian_density, paramag_density, paramag_density_error, probe_beam
+
+def createProcessedFile(raw_filename, exp_filepath):
+    """
+    Creates a processed file from the specified raw file and experiment file. The processed file is saved in the same location as the specified raw and experiment files. If a processed datafile following the expected naming convention, \\path\\to\\raw\\data\\raw_file_name_processed.csv, a new processed file will not be created. 
+    
+    Parameters
+    ----------
+    raw_filename : string
+        The file path to the file containing the raw data to be processed.
+    exp_filepath : string
+        The file path to the file containing the settings used when collecting the raw data.  
+    """
+
+    #get the data from the rawfile, calibration file, and experiment file
+    raw_data = pd.read_csv(raw_filename)
+    #cal_params = pd.read_csv(cal_filepath)
+    exp_params = pd.read_csv(exp_filepath)
+
+    #construct processed file name
+    temp = raw_filename.split('.')
+    processed_filepath = temp[0]+'.'+temp[1]+'_processed.csv'
+
+    #get conversion factor from cal file 
+    conversion_factor = exp_params["ConversionFactor"][0] #assuming right now that we only have one trial per file. Update later if this is lies.
+    
+	#get raw data as dataframe transform voltage to rotation
+    # zero_rotation_voltage = getZeroRotationVoltage() 
+    voltages = raw_data["Voltage"]
+    voltages_mae = raw_data["Voltage Mean Absolute Error"]
+    voltages_std = raw_data["Voltage Standard Deviation"]
+    currents = raw_data["Current"]
+    rotations = []
+    rotation_mae = []
+    rotation_std = []
+    mag_fields = []
+    l = len(voltages)
+
+    #average out 0 values in case we took multiple since that happens sometimes. 
+    zero_index = raw_data.loc[raw_data["Current"] == 0].index.tolist()
+    zero_vs = raw_data["Voltage"].iloc[zero_index].to_list()
+    zero_rotation_voltage = np.average(zero_vs)
+
+	#convert all the voltages to rotations
+    for i in range (0, l):
+        r = convertVtoRot(voltages[i], zero_rotation_voltage, conversion_factor)
+        b = convertItoB_mainroom(currents[i])
+        rotations.append(r)
+        #verdet_adj_rotations.append(glass_verdet_adj(self.verdet, self.verdet_path_len, r, b))
+        rotation_mae.append(voltages_mae[i]*conversion_factor)
+        rotation_std.append(voltages_std[i]*conversion_factor)
+        mag_fields.append(convertItoB_mainroom(currents[i]))
+        #convert current to magnetic field
+    processed_data = pd.DataFrame({
+		"Magnetic Field (Gauss)": mag_fields,
+		"Rotation (Radians)": rotations,
+		"Rotation Mean Absolute Error": rotation_mae, 
+		"Rotation Standard Deviation": rotation_std
+	})
+    #this should appropriately handle the case where a file has already been created. 
+    try: 
+        processed_data.to_csv(processed_filepath)
+    except FileExistsError: 
+        print(processed_filepath, " already exists.")
+
+def file_path_traverse(root):
+    """
+    Traverses the specified root directory and returns a dictionary object with keys corresponding to all the subdirectories that contain csv files and elements containing a list of csv files in each subdirectory. 
+    
+    Parameters
+    ----------
+    root : string
+        The file path to the root directory to be traversed.
+
+    Returns
+    -------
+    list_of_files : dictionary 
+        A dictionary object with keys corresponding to the subdirectories containing .csv files and elements listing the .csv files within each directory.
+        E.x. {'/my/sub/directory/1': ['/my/sub/directory/1/afile.csv', '/my/sub/directory/1/anotherfile.csv'],}
+    """
+    list_of_files = {}
+    for (dirpath, dirnames, filenames) in os.walk(root):
+        files = []
+        for filename in filenames:
+            if filename.endswith('.csv'):
+                files.append(os.sep.join([dirpath, filename]))
+            list_of_files[dirpath] = files
+    
+    #remove all indices with empty lists 
+    keys = [key for key, val in list_of_files.items() if val == []] #gets a list of all the indices with no file lists
+    for key in keys:
+        del (list_of_files[key]) #deletes all the indices with empty file lists
+    return list_of_files
+
+def batchProcessFiles(root):
+    """
+    Takes the root file path of a directory containing data files and creates processed data files for any unprocessed .csv files found. If a processed file exists for a dataset, a new one will not be created. 
+
+    Parameters
+    ----------
+    root : string
+        The file path to the root directory in which the data lives.
+    """
+
+    experiment_file_str = '*Experiment_Params*'
+    data_file_str = '*trial-*'
+
+    files = file_path_traverse(root)
+
+    for key, value in files.items():
+        #for each key I need to create one processed file
+        raw = ''
+        exp = ''
+        for v in value:
+            if fnmatch(v, data_file_str):
+                raw = v #locates the data file in the set of files indexed under the current key
+            if fnmatch(v, experiment_file_str):
+                exp = v #locates the data file in the set of files indexed under the current key
+        #now I have both my files, so I can create the processed file
+        try: 
+            createProcessedFile(raw, exp)
+        except: 
+            #this should catch the case where some of the files are blank and unable to be used to create a processed file
+            print("unable to create processed file for ", key)

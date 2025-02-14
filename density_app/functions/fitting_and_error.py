@@ -1,5 +1,14 @@
 import numpy as np
 from scipy.optimize import curve_fit
+from .constants import PLANKS_CONSTANT, BOLTZMANN_CONSTANT, LIGHT_SPEED, ELECTRON_MASS, BOHR_MAGNETON, ELECTRON_CHARGE
+from .alkali_density_calculation import rb_density_second_order, get_first_order_terms_prefactor, get_second_order_terms_prefactor, get_first_order_terms, get_second_order_terms
+
+h = PLANKS_CONSTANT
+k = BOLTZMANN_CONSTANT
+c = LIGHT_SPEED
+m = ELECTRON_MASS
+u = BOHR_MAGNETON
+e = ELECTRON_CHARGE
 
 def linear_fit_data(x_vals, y_vals):
     """
@@ -244,3 +253,60 @@ def get_percent_error(error_val, measured_val):
     """
     perc_err = 100*error_val/measured_val
     return perc_err
+
+
+
+#error analysis
+#SOURCE: http://www.geol.lsu.edu/jlorenzo/geophysics/uncertainties/Uncertaintiespart2.html
+#propagate error when multiplying values
+def add_in_quadrature(errors):
+    err = np.sqrt(np.sum(np.array(errors)**2))#errors must be passed as a numpy array
+    return err
+
+def multiplication_error(final, errors, values):
+    #error and values need to be numpy arrays
+    err = np.sqrt(np.sum((np.array(errors)/np.array(values))**2))*final
+    return err
+
+def powers_error(final, powers, errors, values):
+    #powers, errors, and values need to be numpy arrays
+    temp = np.array(powers)*np.array(errors)
+    err = np.sqrt(np.sum(((temp)/np.array(values))**2))*final
+    return err
+
+def wl_error(probe_error, probe, resonance_error, resonance):
+    #get error from resonance - probe
+    errors = np.array([probe_error, resonance_error])
+    subtraction = add_in_quadrature(errors)
+    # get error in probe beam squared
+    power = powers_error(probe**2, [2], [probe_error], [probe])
+    #get error in probe^2/(resonance-probe)
+    delta = resonance-probe
+    result = probe**2/delta
+    final_error = multiplication_error(result, [power, subtraction], [probe**2, delta])
+    return final_error
+
+def wl_terms_error(probe_error, probe, d1_error, d1, d2_error, d2, T):
+    #first term
+    d1_term = probe**2/(d1-probe)
+    d1_err_temp = wl_error(probe_error, probe, d1_error, d1)
+    d1_term_err = powers_error(4*d1_term**2, [2], [d1_err_temp], [d1_term**2])
+    d2_term = probe**2/(d2-probe)
+
+    d2_err_temp = wl_error(probe_error, probe, d2_error, d2)
+    d2_term_err = powers_error(7*d2_term**2, [2], [d2_err_temp], [d2_term**2])
+    mixed_term = d1_term*d2_term
+    mixed_term_error = multiplication_error(2*mixed_term, [d1_err_temp, d1_err_temp], [d1_term, d2_term])
+    #we have all the errors in th pieces, now we get the total error adding in quadrature
+    term1_temp = (1/(3*c**2))*add_in_quadrature([d1_term_err, d2_term_err, mixed_term_error])
+    #second term
+    term2_temp = (h/(k*T*c))*add_in_quadrature([d1_err_temp, d2_term_err])
+    final_error = add_in_quadrature([term1_temp, term2_temp])
+    return final_error
+
+def density_error(slope_error, slope, length_error, length, probe_error, probe, d1_error, d1, d2_error, d2, T):
+    wl_error = wl_terms_error(probe_error, probe, d1_error, d1, d2_error, d2, T)
+    wl_val = get_first_order_terms_prefactor(probe)*get_first_order_terms(d1, d2, probe)+get_second_order_terms_prefactor(probe, T)*get_second_order_terms(d1, d2, probe, False)
+    rb_den = rb_density_second_order(d1, d2, length, probe, T, slope) 
+    rb_error = multiplication_error(rb_den, [slope_error, length_error, wl_error], [slope, length, wl_val])
+    return rb_error
