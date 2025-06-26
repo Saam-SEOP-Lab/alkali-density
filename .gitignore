@@ -160,6 +160,7 @@ cython_debug/
 #.idea/
 
 # Also ignore these files
+/coildriftdata
 /Data
 /plots
 GUI_experimentation/
@@ -168,3 +169,5 @@ GUI_experimentation/
 /calibrationfactors.ipynb
 /calibration_exp/*
 *.csv
+*.png
+/high_pressure_cell

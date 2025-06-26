@@ -57,7 +57,7 @@ def get_second_order_terms_prefactor(probe_beam, temp):
         The prefactor for the second term in the alkali metal density equation, as calculated by (h)/(k_b*T)
     """
     T_in_Kelvin = convertTtoKelvin(temp)
-    so_prefactor = (PLANKS_CONSTANT*probe_beam)/(LIGHT_SPEED*BOLTZMANN_CONSTANT*T_in_Kelvin)
+    so_prefactor = (PLANKS_CONSTANT*probe_beam)/(LIGHT_SPEED*BOLTZMANN_CONSTANT*T_in_Kelvin) #for future me: when you come back here in several months and panic that there is an extra factor of c that doesn't make sense, it is necessary due to distribution and algebra. It arises from combining the version of the equation in Vleigen and the version of the equation in Chann
     return so_prefactor
 
 def get_first_order_terms(d1_res, d2_res, probe_beam):

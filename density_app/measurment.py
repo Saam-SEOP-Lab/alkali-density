@@ -8,8 +8,11 @@ import pandas as pd
 from datetime import datetime
 import time
 
+import pyvisa as visa
+import re
+
 #my libraries
-import density_app.functions.density_collection as dcf
+import functions.density_collection as dcf
 from functions.validation import entry_exists_is_number, validate_text_exists
 from functions.data_files import createDataCSV
 from functions.formatting import formatter
@@ -84,7 +87,9 @@ class App(ttk.Frame):
 
 		else: 
 			#some info for collecting data
-			self.scope_addr = 'USB0::0x0699::0x0368::C041014::INSTR'
+			#self.scope_addr = 'USB0::0x1AB1::0x0517::DS1ZE223405318::INSTR'# 'USB0::0x0699::0x0368::C041014::INSTR'
+			self.find_and_connect()
+
 			try: 
 				#now connect to the scope (comment out two lines below when testing w/o scope)
 				self.my_scope = dcf.connectToScope(self.scope_addr)
@@ -92,7 +97,16 @@ class App(ttk.Frame):
 				self.is_connected_lbl["text"] = "Connected to "+ self.scope_addr
 			except: 
 				self.is_connected_lbl["text"] = "No instruments available"
-
+	
+	def find_and_connect(self):
+		#note that this just finds the first instrument that starts with USB, so don't plug to many things in to your computer when you run this
+		#yes this is the lazy way out. I should make this a drop down. That is however future me's problem. 
+		rm = visa.ResourceManager()
+		self.instruments = list(rm.list_resources())
+		pattern = re.compile('USB.*')
+		matches = list(filter(pattern.match, self.instruments))
+		self.scope_addr =matches[0]
+		
 
 	def save_data(self):
 		self.raw_data_file.close()

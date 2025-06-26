@@ -1,6 +1,7 @@
 import csv
 import pandas as pd
 import os
+import numpy as np
 
 
 from .formatting import dtStringForFilename, timestampToArray, formatter
